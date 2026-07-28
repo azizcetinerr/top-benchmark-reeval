@@ -1,0 +1,7 @@
+phase,configuration,moduledict_fix,registered_self_att,registered_cross_att,registered_routers,registered_tensors_total,trainable_params,cross_att_tensors,cross_att_in_optimizer,cross_att_with_grad,cross_att_changed,self_att_tensors,self_att_in_optimizer,self_att_changed,router_tensors,router_in_optimizer,router_changed,train_loss_one_step,state_dict_keys
+I,Original (plain dict),False,0,0,0,48,312034,144,0,144,0,72,0,0,48,0,0,2.8727924823760986,49
+I,Fixed (nn.ModuleDict),True,72,144,48,312,319562,144,144,144,144,72,72,72,48,48,48,2.8727924823760986,313
+II,Original (plain dict),False,0,0,0,48,312034,144,0,144,0,72,0,0,48,0,0,3.66801118850708,48
+II,Fixed (nn.ModuleDict),True,72,144,48,312,319562,144,144,144,144,72,72,72,48,48,48,3.66801118850708,312
+III,Original (plain dict),False,0,0,0,48,312034,144,0,144,0,72,0,0,48,0,0,2.676175594329834,49
+III,Fixed (nn.ModuleDict),True,72,144,48,312,319562,144,144,144,144,72,72,72,48,48,48,2.676175594329834,313

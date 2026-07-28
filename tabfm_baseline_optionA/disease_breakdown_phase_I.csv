@@ -1,0 +1,4 @@
+ICD,alan,n,poz_oran,hint_ROC,hint_PR,tabfm_ROC,tabfm_PR
+C,Neoplazm (kanser),194,0.448,0.488,0.501,0.498,0.444
+D,Kan/bağışıklık,65,0.446,0.473,0.453,0.609,0.56
+Z,Sağlık durumu,65,0.6,0.685,0.719,0.638,0.663

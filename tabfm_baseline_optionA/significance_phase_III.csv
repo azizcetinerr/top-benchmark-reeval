@@ -1,0 +1,21 @@
+rakip,metrik,n,fark(TabFM-rakip),CI95,p,anlamli
+hintvar_Only_Molecule,pr_auc,1146,0.0754,"[+0.0457, +0.1027]",0.0,EVET
+logreg,pr_auc,1146,0.0714,"[+0.0416, +0.1013]",0.0,EVET
+mexa,pr_auc,1146,0.068,"[+0.0385, +0.0962]",0.0,EVET
+randomforest,pr_auc,1146,0.0274,"[+0.0039, +0.0503]",0.024,EVET
+gradboost,pr_auc,1146,0.0219,"[-0.0027, +0.0455]",0.08,hayir
+hint,pr_auc,1146,0.0042,"[-0.0177, +0.0253]",0.699,hayir
+hintvar_HINT_nograph,pr_auc,1146,-0.0025,"[-0.0233, +0.0196]",0.791,hayir
+hintvar_Interaction,pr_auc,1146,-0.0032,"[-0.0259, +0.0192]",0.797,hayir
+hintvar_HINTModel,pr_auc,1146,-0.0069,"[-0.0278, +0.0146]",0.517,hayir
+hintvar_Only_Disease,pr_auc,1146,-0.0087,"[-0.0274, +0.0105]",0.358,hayir
+mexa,roc_auc,1146,0.1498,"[+0.0989, +0.1982]",0.0,EVET
+hintvar_Only_Molecule,roc_auc,1146,0.127,"[+0.0792, +0.1701]",0.0,EVET
+logreg,roc_auc,1146,0.1141,"[+0.0685, +0.1592]",0.0,EVET
+randomforest,roc_auc,1146,0.0483,"[+0.0125, +0.0855]",0.012,EVET
+gradboost,roc_auc,1146,0.0166,"[-0.0187, +0.0507]",0.335,hayir
+hint,roc_auc,1146,-0.0175,"[-0.0530, +0.0173]",0.346,hayir
+hintvar_HINT_nograph,roc_auc,1146,-0.0271,"[-0.0608, +0.0060]",0.116,hayir
+hintvar_Only_Disease,roc_auc,1146,-0.0319,"[-0.0647, -0.0012]",0.046,EVET
+hintvar_HINTModel,roc_auc,1146,-0.0407,"[-0.0740, -0.0075]",0.018,EVET
+hintvar_Interaction,roc_auc,1146,-0.0435,"[-0.0781, -0.0103]",0.011,EVET

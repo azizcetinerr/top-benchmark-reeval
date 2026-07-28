@@ -1,0 +1,147 @@
+phase,checkpoint,key,shape,numel,group,is_mechanism,exists_in_fixed_model
+I,rocbest@26.pth.tar,sprojection.main.0.weight,"(11, 15)",165,sprojection,False,True
+I,rocbest@26.pth.tar,sprojection.main.0.bias,"(11,)",11,sprojection,False,True
+I,rocbest@26.pth.tar,sprojection.main.2.weight,"(8, 11)",88,sprojection,False,True
+I,rocbest@26.pth.tar,sprojection.main.2.bias,"(8,)",8,sprojection,False,True
+I,rocbest@26.pth.tar,sprojection.shortcut.weight,"(8, 15)",120,sprojection,False,True
+I,rocbest@26.pth.tar,sprojection.shortcut.bias,"(8,)",8,sprojection,False,True
+I,rocbest@26.pth.tar,cprojection.main.0.weight,"(388, 768)",297984,cprojection,False,True
+I,rocbest@26.pth.tar,cprojection.main.0.bias,"(388,)",388,cprojection,False,True
+I,rocbest@26.pth.tar,cprojection.main.2.weight,"(8, 388)",3104,cprojection,False,True
+I,rocbest@26.pth.tar,cprojection.main.2.bias,"(8,)",8,cprojection,False,True
+I,rocbest@26.pth.tar,cprojection.shortcut.weight,"(8, 768)",6144,cprojection,False,True
+I,rocbest@26.pth.tar,cprojection.shortcut.bias,"(8,)",8,cprojection,False,True
+I,rocbest@26.pth.tar,iprojection.main.0.weight,"(36, 64)",2304,iprojection,False,True
+I,rocbest@26.pth.tar,iprojection.main.0.bias,"(36,)",36,iprojection,False,True
+I,rocbest@26.pth.tar,iprojection.main.2.weight,"(8, 36)",288,iprojection,False,True
+I,rocbest@26.pth.tar,iprojection.main.2.bias,"(8,)",8,iprojection,False,True
+I,rocbest@26.pth.tar,iprojection.shortcut.weight,"(8, 64)",512,iprojection,False,True
+I,rocbest@26.pth.tar,iprojection.shortcut.bias,"(8,)",8,iprojection,False,True
+I,rocbest@26.pth.tar,compensation.0.self_att.self_att.in_proj_weight,"(24, 8)",192,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.self_att.self_att.in_proj_bias,"(24,)",24,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.self_att.self_att.out_proj.weight,"(8, 8)",64,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.self_att.self_att.out_proj.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.self_att.norm.weight,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.self_att.norm.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.ffn.linear1.weight,"(4, 8)",32,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.ffn.linear1.bias,"(4,)",4,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.ffn.linear2.weight,"(8, 4)",32,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.ffn.linear2.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.ffn.norm.weight,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.0.ffn.norm.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.self_att.self_att.in_proj_weight,"(24, 8)",192,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.self_att.self_att.in_proj_bias,"(24,)",24,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.self_att.self_att.out_proj.weight,"(8, 8)",64,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.self_att.self_att.out_proj.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.self_att.norm.weight,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.self_att.norm.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.ffn.linear1.weight,"(4, 8)",32,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.ffn.linear1.bias,"(4,)",4,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.ffn.linear2.weight,"(8, 4)",32,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.ffn.linear2.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.ffn.norm.weight,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,compensation.1.ffn.norm.bias,"(8,)",8,compensation,False,True
+I,rocbest@26.pth.tar,predictionhead.main.0.weight,"(4, 8)",32,predictionhead,False,True
+I,rocbest@26.pth.tar,predictionhead.main.0.bias,"(4,)",4,predictionhead,False,True
+I,rocbest@26.pth.tar,predictionhead.main.2.weight,"(1, 4)",4,predictionhead,False,True
+I,rocbest@26.pth.tar,predictionhead.main.2.bias,"(1,)",1,predictionhead,False,True
+I,rocbest@26.pth.tar,predictionhead.shortcut.weight,"(1, 8)",8,predictionhead,False,True
+I,rocbest@26.pth.tar,predictionhead.shortcut.bias,"(1,)",1,predictionhead,False,True
+I,rocbest@26.pth.tar,bceloss.weight,"(1,)",1,bceloss,False,True
+II,model@16.pth.tar,sprojection.main.0.weight,"(11, 15)",165,sprojection,False,True
+II,model@16.pth.tar,sprojection.main.0.bias,"(11,)",11,sprojection,False,True
+II,model@16.pth.tar,sprojection.main.2.weight,"(8, 11)",88,sprojection,False,True
+II,model@16.pth.tar,sprojection.main.2.bias,"(8,)",8,sprojection,False,True
+II,model@16.pth.tar,sprojection.shortcut.weight,"(8, 15)",120,sprojection,False,True
+II,model@16.pth.tar,sprojection.shortcut.bias,"(8,)",8,sprojection,False,True
+II,model@16.pth.tar,cprojection.main.0.weight,"(388, 768)",297984,cprojection,False,True
+II,model@16.pth.tar,cprojection.main.0.bias,"(388,)",388,cprojection,False,True
+II,model@16.pth.tar,cprojection.main.2.weight,"(8, 388)",3104,cprojection,False,True
+II,model@16.pth.tar,cprojection.main.2.bias,"(8,)",8,cprojection,False,True
+II,model@16.pth.tar,cprojection.shortcut.weight,"(8, 768)",6144,cprojection,False,True
+II,model@16.pth.tar,cprojection.shortcut.bias,"(8,)",8,cprojection,False,True
+II,model@16.pth.tar,iprojection.main.0.weight,"(36, 64)",2304,iprojection,False,True
+II,model@16.pth.tar,iprojection.main.0.bias,"(36,)",36,iprojection,False,True
+II,model@16.pth.tar,iprojection.main.2.weight,"(8, 36)",288,iprojection,False,True
+II,model@16.pth.tar,iprojection.main.2.bias,"(8,)",8,iprojection,False,True
+II,model@16.pth.tar,iprojection.shortcut.weight,"(8, 64)",512,iprojection,False,True
+II,model@16.pth.tar,iprojection.shortcut.bias,"(8,)",8,iprojection,False,True
+II,model@16.pth.tar,compensation.0.self_att.self_att.in_proj_weight,"(24, 8)",192,compensation,False,True
+II,model@16.pth.tar,compensation.0.self_att.self_att.in_proj_bias,"(24,)",24,compensation,False,True
+II,model@16.pth.tar,compensation.0.self_att.self_att.out_proj.weight,"(8, 8)",64,compensation,False,True
+II,model@16.pth.tar,compensation.0.self_att.self_att.out_proj.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.0.self_att.norm.weight,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.0.self_att.norm.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.0.ffn.linear1.weight,"(4, 8)",32,compensation,False,True
+II,model@16.pth.tar,compensation.0.ffn.linear1.bias,"(4,)",4,compensation,False,True
+II,model@16.pth.tar,compensation.0.ffn.linear2.weight,"(8, 4)",32,compensation,False,True
+II,model@16.pth.tar,compensation.0.ffn.linear2.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.0.ffn.norm.weight,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.0.ffn.norm.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.1.self_att.self_att.in_proj_weight,"(24, 8)",192,compensation,False,True
+II,model@16.pth.tar,compensation.1.self_att.self_att.in_proj_bias,"(24,)",24,compensation,False,True
+II,model@16.pth.tar,compensation.1.self_att.self_att.out_proj.weight,"(8, 8)",64,compensation,False,True
+II,model@16.pth.tar,compensation.1.self_att.self_att.out_proj.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.1.self_att.norm.weight,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.1.self_att.norm.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.1.ffn.linear1.weight,"(4, 8)",32,compensation,False,True
+II,model@16.pth.tar,compensation.1.ffn.linear1.bias,"(4,)",4,compensation,False,True
+II,model@16.pth.tar,compensation.1.ffn.linear2.weight,"(8, 4)",32,compensation,False,True
+II,model@16.pth.tar,compensation.1.ffn.linear2.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.1.ffn.norm.weight,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,compensation.1.ffn.norm.bias,"(8,)",8,compensation,False,True
+II,model@16.pth.tar,predictionhead.main.0.weight,"(4, 8)",32,predictionhead,False,True
+II,model@16.pth.tar,predictionhead.main.0.bias,"(4,)",4,predictionhead,False,True
+II,model@16.pth.tar,predictionhead.main.2.weight,"(1, 4)",4,predictionhead,False,True
+II,model@16.pth.tar,predictionhead.main.2.bias,"(1,)",1,predictionhead,False,True
+II,model@16.pth.tar,predictionhead.shortcut.weight,"(1, 8)",8,predictionhead,False,True
+II,model@16.pth.tar,predictionhead.shortcut.bias,"(1,)",1,predictionhead,False,True
+III,rocbest.pth.tar,sprojection.main.0.weight,"(11, 15)",165,sprojection,False,True
+III,rocbest.pth.tar,sprojection.main.0.bias,"(11,)",11,sprojection,False,True
+III,rocbest.pth.tar,sprojection.main.2.weight,"(8, 11)",88,sprojection,False,True
+III,rocbest.pth.tar,sprojection.main.2.bias,"(8,)",8,sprojection,False,True
+III,rocbest.pth.tar,sprojection.shortcut.weight,"(8, 15)",120,sprojection,False,True
+III,rocbest.pth.tar,sprojection.shortcut.bias,"(8,)",8,sprojection,False,True
+III,rocbest.pth.tar,cprojection.main.0.weight,"(388, 768)",297984,cprojection,False,True
+III,rocbest.pth.tar,cprojection.main.0.bias,"(388,)",388,cprojection,False,True
+III,rocbest.pth.tar,cprojection.main.2.weight,"(8, 388)",3104,cprojection,False,True
+III,rocbest.pth.tar,cprojection.main.2.bias,"(8,)",8,cprojection,False,True
+III,rocbest.pth.tar,cprojection.shortcut.weight,"(8, 768)",6144,cprojection,False,True
+III,rocbest.pth.tar,cprojection.shortcut.bias,"(8,)",8,cprojection,False,True
+III,rocbest.pth.tar,iprojection.main.0.weight,"(36, 64)",2304,iprojection,False,True
+III,rocbest.pth.tar,iprojection.main.0.bias,"(36,)",36,iprojection,False,True
+III,rocbest.pth.tar,iprojection.main.2.weight,"(8, 36)",288,iprojection,False,True
+III,rocbest.pth.tar,iprojection.main.2.bias,"(8,)",8,iprojection,False,True
+III,rocbest.pth.tar,iprojection.shortcut.weight,"(8, 64)",512,iprojection,False,True
+III,rocbest.pth.tar,iprojection.shortcut.bias,"(8,)",8,iprojection,False,True
+III,rocbest.pth.tar,compensation.0.self_att.self_att.in_proj_weight,"(24, 8)",192,compensation,False,True
+III,rocbest.pth.tar,compensation.0.self_att.self_att.in_proj_bias,"(24,)",24,compensation,False,True
+III,rocbest.pth.tar,compensation.0.self_att.self_att.out_proj.weight,"(8, 8)",64,compensation,False,True
+III,rocbest.pth.tar,compensation.0.self_att.self_att.out_proj.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.0.self_att.norm.weight,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.0.self_att.norm.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.0.ffn.linear1.weight,"(4, 8)",32,compensation,False,True
+III,rocbest.pth.tar,compensation.0.ffn.linear1.bias,"(4,)",4,compensation,False,True
+III,rocbest.pth.tar,compensation.0.ffn.linear2.weight,"(8, 4)",32,compensation,False,True
+III,rocbest.pth.tar,compensation.0.ffn.linear2.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.0.ffn.norm.weight,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.0.ffn.norm.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.1.self_att.self_att.in_proj_weight,"(24, 8)",192,compensation,False,True
+III,rocbest.pth.tar,compensation.1.self_att.self_att.in_proj_bias,"(24,)",24,compensation,False,True
+III,rocbest.pth.tar,compensation.1.self_att.self_att.out_proj.weight,"(8, 8)",64,compensation,False,True
+III,rocbest.pth.tar,compensation.1.self_att.self_att.out_proj.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.1.self_att.norm.weight,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.1.self_att.norm.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.1.ffn.linear1.weight,"(4, 8)",32,compensation,False,True
+III,rocbest.pth.tar,compensation.1.ffn.linear1.bias,"(4,)",4,compensation,False,True
+III,rocbest.pth.tar,compensation.1.ffn.linear2.weight,"(8, 4)",32,compensation,False,True
+III,rocbest.pth.tar,compensation.1.ffn.linear2.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.1.ffn.norm.weight,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,compensation.1.ffn.norm.bias,"(8,)",8,compensation,False,True
+III,rocbest.pth.tar,predictionhead.main.0.weight,"(4, 8)",32,predictionhead,False,True
+III,rocbest.pth.tar,predictionhead.main.0.bias,"(4,)",4,predictionhead,False,True
+III,rocbest.pth.tar,predictionhead.main.2.weight,"(1, 4)",4,predictionhead,False,True
+III,rocbest.pth.tar,predictionhead.main.2.bias,"(1,)",1,predictionhead,False,True
+III,rocbest.pth.tar,predictionhead.shortcut.weight,"(1, 8)",8,predictionhead,False,True
+III,rocbest.pth.tar,predictionhead.shortcut.bias,"(1,)",1,predictionhead,False,True
+III,rocbest.pth.tar,bceloss.weight,"(1,)",1,bceloss,False,True

@@ -1,0 +1,13 @@
+representation,classifier,roc_mean,roc_std,pr_mean,f1_mean,n
+chapter,RandForest,0.6207,0.0009,0.655,0.6861,5
+icd2vec_64,RandForest,0.6198,0.0007,0.6724,0.6873,5
+full_code,RandForest,0.6167,0.001,0.6675,0.6875,5
+category3,RandForest,0.6161,0.001,0.663,0.6839,5
+category3,MLP,0.6159,0.0065,0.6458,0.6806,5
+chapter,LogReg,0.6123,0.0,0.6348,0.6928,5
+chapter,MLP,0.6121,0.0073,0.6435,0.6886,5
+category3,LogReg,0.6097,0.0,0.6438,0.6825,5
+full_code,MLP,0.6097,0.0072,0.6451,0.6774,5
+full_code,LogReg,0.6034,0.0,0.6419,0.6776,5
+icd2vec_64,MLP,0.5987,0.0099,0.6505,0.6804,5
+icd2vec_64,LogReg,0.5767,0.0,0.6288,0.6721,5

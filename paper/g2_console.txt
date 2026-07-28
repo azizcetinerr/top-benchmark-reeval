@@ -1,0 +1,105 @@
+==============================================================================
+GAP G2 — maskeleme cokusu logu
+torch 2.10.0 | phase II | steps 300 | lrs [0.05, 0.01, 0.001, 0.0001]
+==============================================================================
+[veri] gercek: /Users/acetiner/ctp/mexa/DataPath/ phase_II, 4005 ornek, batch 64
+
+>>> lr=0.05 safeguard=off  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.2777 | cauchy  4.2780 | ort. router p 0.5030 | tam-maskeli 20/512 (3.9%)
+    [NaN] adim 9: loss NaN oldu. tam-maskelenen satir orani (bu adim) = 512/512
+
+>>> lr=0.05 safeguard=on  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.4583 | cauchy  4.2693 | ort. router p 0.5012 | tam-maskeli 21/512 (4.1%)
+    adim   30 | loss   0.7200 | cauchy  0.0002 | ort. router p 0.0015 | tam-maskeli 512/512 (100.0%)
+    adim   60 | loss   0.7366 | cauchy  0.0001 | ort. router p 0.0011 | tam-maskeli 512/512 (100.0%)
+    adim   90 | loss   0.7259 | cauchy  0.0001 | ort. router p 0.0012 | tam-maskeli 512/512 (100.0%)
+    adim  120 | loss   0.7240 | cauchy  0.0001 | ort. router p 0.0013 | tam-maskeli 512/512 (100.0%)
+    adim  150 | loss   0.7277 | cauchy  0.0001 | ort. router p 0.0014 | tam-maskeli 512/512 (100.0%)
+    adim  180 | loss   0.7313 | cauchy  0.0001 | ort. router p 0.0014 | tam-maskeli 296/296 (100.0%)
+    adim  210 | loss   0.6995 | cauchy  0.0001 | ort. router p 0.0015 | tam-maskeli 512/512 (100.0%)
+    adim  240 | loss   0.7396 | cauchy  0.0002 | ort. router p 0.0017 | tam-maskeli 512/512 (100.0%)
+    adim  270 | loss   0.7199 | cauchy  0.0003 | ort. router p 0.0022 | tam-maskeli 512/512 (100.0%)
+    adim  300 | loss   0.7214 | cauchy  0.0004 | ort. router p 0.0026 | tam-maskeli 512/512 (100.0%)
+
+>>> lr=0.01 safeguard=off  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.2522 | cauchy  4.3371 | ort. router p 0.5107 | tam-maskeli 24/512 (4.7%)
+    [NaN] adim 28: loss NaN oldu. tam-maskelenen satir orani (bu adim) = 430/512
+
+>>> lr=0.01 safeguard=on  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.9631 | cauchy  4.3277 | ort. router p 0.5076 | tam-maskeli 21/512 (4.1%)
+    adim   30 | loss   0.7284 | cauchy  0.2538 | ort. router p 0.0974 | tam-maskeli 453/512 (88.5%)
+    adim   60 | loss   0.7198 | cauchy  0.0221 | ort. router p 0.0287 | tam-maskeli 511/512 (99.8%)
+    adim   90 | loss   0.7192 | cauchy  0.0116 | ort. router p 0.0212 | tam-maskeli 512/512 (100.0%)
+    adim  120 | loss   0.7242 | cauchy  0.0099 | ort. router p 0.0186 | tam-maskeli 511/512 (99.8%)
+    adim  150 | loss   0.7535 | cauchy  0.0077 | ort. router p 0.0167 | tam-maskeli 512/512 (100.0%)
+    adim  180 | loss   0.7093 | cauchy  0.0166 | ort. router p 0.0211 | tam-maskeli 508/512 (99.2%)
+    adim  210 | loss   0.6821 | cauchy  0.0110 | ort. router p 0.0188 | tam-maskeli 512/512 (100.0%)
+    adim  240 | loss   0.6300 | cauchy  0.0073 | ort. router p 0.0138 | tam-maskeli 512/512 (100.0%)
+    adim  270 | loss   0.7001 | cauchy  0.0116 | ort. router p 0.0153 | tam-maskeli 507/512 (99.0%)
+    adim  300 | loss   0.6098 | cauchy  0.0041 | ort. router p 0.0105 | tam-maskeli 512/512 (100.0%)
+
+>>> lr=0.001 safeguard=off  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.5629 | cauchy  4.3711 | ort. router p 0.5096 | tam-maskeli 17/512 (3.3%)
+    adim   30 | loss   0.9655 | cauchy  3.2450 | ort. router p 0.3971 | tam-maskeli 64/512 (12.5%)
+    adim   60 | loss   0.9021 | cauchy  2.5607 | ort. router p 0.3419 | tam-maskeli 65/512 (12.7%)
+    adim   90 | loss   0.9078 | cauchy  1.7587 | ort. router p 0.2806 | tam-maskeli 128/512 (25.0%)
+    adim  120 | loss   0.8277 | cauchy  1.2625 | ort. router p 0.2381 | tam-maskeli 193/512 (37.7%)
+    adim  150 | loss   0.7404 | cauchy  0.8404 | ort. router p 0.1901 | tam-maskeli 257/512 (50.2%)
+    adim  180 | loss   0.7980 | cauchy  0.6393 | ort. router p 0.1679 | tam-maskeli 359/512 (70.1%)
+    [NaN] adim 184: loss NaN oldu. tam-maskelenen satir orani (bu adim) = 359/512
+
+>>> lr=0.001 safeguard=on  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.5732 | cauchy  4.3049 | ort. router p 0.5005 | tam-maskeli 24/512 (4.7%)
+    adim   30 | loss   0.8907 | cauchy  3.3012 | ort. router p 0.4005 | tam-maskeli 63/512 (12.3%)
+    adim   60 | loss   0.9162 | cauchy  2.4554 | ort. router p 0.3439 | tam-maskeli 65/512 (12.7%)
+    adim   90 | loss   0.7845 | cauchy  1.7771 | ort. router p 0.2899 | tam-maskeli 167/512 (32.6%)
+    adim  120 | loss   0.7613 | cauchy  1.1520 | ort. router p 0.2346 | tam-maskeli 196/512 (38.3%)
+    adim  150 | loss   0.7362 | cauchy  0.7615 | ort. router p 0.1879 | tam-maskeli 260/512 (50.8%)
+    adim  180 | loss   0.6818 | cauchy  0.5277 | ort. router p 0.1555 | tam-maskeli 369/512 (72.1%)
+    adim  210 | loss   0.8072 | cauchy  0.3908 | ort. router p 0.1357 | tam-maskeli 407/512 (79.5%)
+    adim  240 | loss   0.6781 | cauchy  0.2757 | ort. router p 0.1134 | tam-maskeli 474/512 (92.6%)
+    adim  270 | loss   0.7142 | cauchy  0.2031 | ort. router p 0.0978 | tam-maskeli 495/512 (96.7%)
+    adim  300 | loss   0.6516 | cauchy  0.1731 | ort. router p 0.0884 | tam-maskeli 490/512 (95.7%)
+
+>>> lr=0.0001 safeguard=off  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.8822 | cauchy  4.3819 | ort. router p 0.5087 | tam-maskeli 15/512 (2.9%)
+    adim   30 | loss   1.1204 | cauchy  4.0704 | ort. router p 0.4706 | tam-maskeli 61/512 (11.9%)
+    adim   60 | loss   1.1560 | cauchy  3.9661 | ort. router p 0.4575 | tam-maskeli 39/512 (7.6%)
+    adim   90 | loss   1.0663 | cauchy  3.8952 | ort. router p 0.4497 | tam-maskeli 46/512 (9.0%)
+    adim  120 | loss   0.9685 | cauchy  3.7288 | ort. router p 0.4335 | tam-maskeli 56/512 (10.9%)
+    adim  150 | loss   0.8894 | cauchy  3.6253 | ort. router p 0.4234 | tam-maskeli 64/512 (12.5%)
+    adim  180 | loss   0.9323 | cauchy  3.5300 | ort. router p 0.4139 | tam-maskeli 61/512 (11.9%)
+    adim  210 | loss   0.9850 | cauchy  3.4346 | ort. router p 0.4066 | tam-maskeli 63/512 (12.3%)
+    adim  240 | loss   0.9906 | cauchy  3.2989 | ort. router p 0.3899 | tam-maskeli 63/512 (12.3%)
+    adim  270 | loss   0.9358 | cauchy  3.2185 | ort. router p 0.3888 | tam-maskeli 64/512 (12.5%)
+    adim  300 | loss   0.8561 | cauchy  3.0999 | ort. router p 0.3751 | tam-maskeli 66/512 (12.9%)
+
+>>> lr=0.0001 safeguard=on  (threshold=0.2, rho1=0.05, seed=2023)
+    adim    1 | loss   2.8624 | cauchy  4.3579 | ort. router p 0.5055 | tam-maskeli 23/512 (4.5%)
+    adim   30 | loss   1.0119 | cauchy  4.1020 | ort. router p 0.4592 | tam-maskeli 63/512 (12.3%)
+    adim   60 | loss   1.1772 | cauchy  3.9479 | ort. router p 0.4544 | tam-maskeli 30/512 (5.9%)
+    adim   90 | loss   0.9340 | cauchy  3.7897 | ort. router p 0.4406 | tam-maskeli 45/512 (8.8%)
+    adim  120 | loss   0.9944 | cauchy  3.7006 | ort. router p 0.4298 | tam-maskeli 64/512 (12.5%)
+    adim  150 | loss   0.9048 | cauchy  3.6489 | ort. router p 0.4280 | tam-maskeli 60/512 (11.7%)
+    adim  180 | loss   0.9404 | cauchy  3.4802 | ort. router p 0.4082 | tam-maskeli 63/512 (12.3%)
+    adim  210 | loss   0.9729 | cauchy  3.4282 | ort. router p 0.4032 | tam-maskeli 62/512 (12.1%)
+    adim  240 | loss   0.8910 | cauchy  3.3021 | ort. router p 0.4034 | tam-maskeli 59/512 (11.5%)
+    adim  270 | loss   0.8850 | cauchy  3.2538 | ort. router p 0.3906 | tam-maskeli 64/512 (12.5%)
+    adim  300 | loss   0.9209 | cauchy  3.1392 | ort. router p 0.3786 | tam-maskeli 62/512 (12.1%)
+
+==============================================================================
+OZET
+phase     lr safeguard  seed  steps_requested  steps_completed  first_nan_step  diverged  final_loss  final_cauchyloss  final_fully_masked_frac  final_mean_router_prob  final_token_below_frac
+   II 0.0500       off  2023              300                9             9.0      True         NaN          0.102159                 1.000000                0.049214                1.000000
+   II 0.0500        on  2023              300              300             NaN     False    0.721435          0.000371                 1.000000                0.002629                1.000000
+   II 0.0100       off  2023              300               28            28.0      True         NaN          0.398356                 0.839844                0.110783                0.875000
+   II 0.0100        on  2023              300              300             NaN     False    0.609789          0.004133                 1.000000                0.010539                1.000000
+   II 0.0010       off  2023              300              184           184.0      True         NaN          0.632693                 0.701172                0.166892                0.805967
+   II 0.0010        on  2023              300              300             NaN     False    0.651639          0.173067                 0.957031                0.088381                0.973342
+   II 0.0001       off  2023              300              300             NaN     False    0.856057          3.099864                 0.128906                0.375072                0.129831
+   II 0.0001        on  2023              300              300             NaN     False    0.920919          3.139199                 0.121094                0.378602                0.128273
+
+YAZILDI:
+  /Users/acetiner/ctp/paper/table_masking_collapse.csv  (13768 satir)
+  /Users/acetiner/ctp/paper/table_masking_summary.csv  (8 satir)
+  /Users/acetiner/ctp/paper/g2_console.txt

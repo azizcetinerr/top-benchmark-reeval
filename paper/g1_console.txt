@@ -1,0 +1,85 @@
+==============================================================================
+GAP G1 — parametre kaydi + checkpoint key dokumu
+torch 2.10.0
+==============================================================================
+
+--- Phase I ---
+checkpoint : /Users/acetiner/ctp/mexa/checkpoints/phaseI/rocbest@26.pth.tar
+args.json  : /Users/acetiner/ctp/mexa/checkpoints/phaseI/args.json
+
+[Original (plain dict)]
+  named_parameters : self-att   0 | cross-att   0 | routers   0
+  trainable params : 312,034
+  optimizer uyeligi: cross-att 0/144 | self-att 0/72 | router 0/48
+  1 adim sonrasi   : cross-att 0/144 degisti | self-att 0/72 | router 0/48
+  state_dict keys  : 49
+
+[Fixed (nn.ModuleDict)]
+  named_parameters : self-att  72 | cross-att 144 | routers  48
+  trainable params : 319,562
+  optimizer uyeligi: cross-att 144/144 | self-att 72/72 | router 48/48
+  1 adim sonrasi   : cross-att 144/144 degisti | self-att 72/72 | router 48/48
+  state_dict keys  : 313
+
+[Yayinlanan checkpoint]
+  toplam key            : 49
+  mekanizma key'i       : 0   <-- iddia: 0
+  ust seviye prefix'ler : ['bceloss', 'compensation', 'cprojection', 'iprojection', 'predictionhead', 'sprojection']
+  checkpoint yan alanlar: ['optimizer', 'stastics']
+  fix'li modelde olup checkpoint'te OLMAYAN key: 264 (bunlarin 264 tanesi mekanizma)
+
+--- Phase II ---
+checkpoint : /Users/acetiner/ctp/mexa/checkpoints/phaseII/model@16.pth.tar
+args.json  : /Users/acetiner/ctp/mexa/checkpoints/phaseII/args.json
+
+[Original (plain dict)]
+  named_parameters : self-att   0 | cross-att   0 | routers   0
+  trainable params : 312,034
+  optimizer uyeligi: cross-att 0/144 | self-att 0/72 | router 0/48
+  1 adim sonrasi   : cross-att 0/144 degisti | self-att 0/72 | router 0/48
+  state_dict keys  : 48
+
+[Fixed (nn.ModuleDict)]
+  named_parameters : self-att  72 | cross-att 144 | routers  48
+  trainable params : 319,562
+  optimizer uyeligi: cross-att 144/144 | self-att 72/72 | router 48/48
+  1 adim sonrasi   : cross-att 144/144 degisti | self-att 72/72 | router 48/48
+  state_dict keys  : 312
+
+[Yayinlanan checkpoint]
+  toplam key            : 48
+  mekanizma key'i       : 0   <-- iddia: 0
+  ust seviye prefix'ler : ['compensation', 'cprojection', 'iprojection', 'predictionhead', 'sprojection']
+  checkpoint yan alanlar: ['optimizer', 'stastics']
+  fix'li modelde olup checkpoint'te OLMAYAN key: 264 (bunlarin 264 tanesi mekanizma)
+
+--- Phase III ---
+checkpoint : /Users/acetiner/ctp/mexa/checkpoints/phaseIII/rocbest.pth.tar
+args.json  : /Users/acetiner/ctp/mexa/checkpoints/phaseIII/args.json
+
+[Original (plain dict)]
+  named_parameters : self-att   0 | cross-att   0 | routers   0
+  trainable params : 312,034
+  optimizer uyeligi: cross-att 0/144 | self-att 0/72 | router 0/48
+  1 adim sonrasi   : cross-att 0/144 degisti | self-att 0/72 | router 0/48
+  state_dict keys  : 49
+
+[Fixed (nn.ModuleDict)]
+  named_parameters : self-att  72 | cross-att 144 | routers  48
+  trainable params : 319,562
+  optimizer uyeligi: cross-att 144/144 | self-att 72/72 | router 48/48
+  1 adim sonrasi   : cross-att 144/144 degisti | self-att 72/72 | router 48/48
+  state_dict keys  : 313
+
+[Yayinlanan checkpoint]
+  toplam key            : 49
+  mekanizma key'i       : 0   <-- iddia: 0
+  ust seviye prefix'ler : ['bceloss', 'compensation', 'cprojection', 'iprojection', 'predictionhead', 'sprojection']
+  checkpoint yan alanlar: ['optimizer', 'stastics']
+  fix'li modelde olup checkpoint'te OLMAYAN key: 264 (bunlarin 264 tanesi mekanizma)
+
+==============================================================================
+YAZILDI:
+  /Users/acetiner/ctp/paper/table_checkpoint_keys.csv  (146 satir)
+  /Users/acetiner/ctp/paper/table_param_registration.csv  (6 satir)
+  /Users/acetiner/ctp/paper/g1_console.txt

@@ -1,0 +1,3 @@
+kontrast,metrik,fark,CI95,p,kazanç
+HINT+TabFM − TabFM,pr_auc,-0.0053,"[-0.0198, +0.0091]",0.512,hayir
+HINT+TabFM − TabFM,roc_auc,0.0011,"[-0.0105, +0.0130]",0.86,hayir

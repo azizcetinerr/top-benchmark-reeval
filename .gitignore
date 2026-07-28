@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+paper/tex/*.pdf
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Large / re-derivable data (fetch from upstream)
+hint/data/raw_data.csv
+hint/data/toy_*.csv
+paper/results_hint_phase_*.csv
+regenerate_all_*.log
+
+# catboost training artifacts (remove with: git rm -r --cached)
+catboost_info/
+*.DS_Store

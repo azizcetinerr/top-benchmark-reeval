@@ -1,0 +1,11 @@
+kontrast,metrik,fark,CI95,p,kazanç
+HINT+TabFM − HINT,pr_auc,0.016,"[+0.0060, +0.0280]",0.0,EVET
+HINT+TabFM − HINT,roc_auc,0.0164,"[+0.0029, +0.0294]",0.0133,EVET
+HINT+TabFM − TabFM,pr_auc,0.0114,"[-0.0028, +0.0218]",0.08,hayir
+HINT+TabFM − TabFM,roc_auc,0.0337,"[+0.0104, +0.0546]",0.0,EVET
+MEXA+TabFM − TabFM,pr_auc,0.0004,"[-0.0080, +0.0086]",0.9267,hayir
+MEXA+TabFM − TabFM,roc_auc,-0.0005,"[-0.0093, +0.0086]",0.9133,hayir
+HINT+MEXA+TabFM − TabFM,pr_auc,0.0131,"[-0.0012, +0.0256]",0.0733,hayir
+HINT+MEXA+TabFM − TabFM,roc_auc,0.0313,"[+0.0066, +0.0540]",0.0133,EVET
+HINT+MEXA+TabFM − HINT+TabFM,pr_auc,0.0017,"[-0.0063, +0.0095]",0.7,hayir
+HINT+MEXA+TabFM − HINT+TabFM,roc_auc,-0.0024,"[-0.0106, +0.0045]",0.56,hayir

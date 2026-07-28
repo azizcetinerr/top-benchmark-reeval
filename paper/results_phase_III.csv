@@ -1,0 +1,3 @@
+model,threshold,ROC-AUC,PR-AUC,F1
+HINT,0.461,"0.685 [0.647, 0.720]","0.852 [0.824, 0.878]","0.826 [0.806, 0.845]"
+"TRIVIAL (all-positive, pos=0.750)",-,0.500 (chance),0.750 (chance),0.857
