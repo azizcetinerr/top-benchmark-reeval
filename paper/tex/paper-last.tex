@@ -127,7 +127,8 @@ every phase. All predictive signal is carried by the disease codes; molecular de
 nothing, since a single real small-molecule graph is shared by $46\%$ of phase-III test trials, so
 no molecular-structure signal is testable. A two-column lookup of the historical success rate of a
 trial's disease code and drug reaches ROC-AUC $0.700$---\emph{above} every deep and foundation
-model, and matching the actuarial tables the industry already uses. We document seven of our own
+model; it \emph{is} the kind of per-indication historical base-rate table the industry already
+uses for go/no-go decisions. We document seven of our own
 directional findings that did not survive replication (including an initial overestimate of seed
 noise: HINT's five-seed sd is $0.0024$) as evidence that effect sizes lie below the benchmark's
 sampling-noise floor. A power analysis makes this quantitative: the minimum detectable difference
@@ -164,11 +165,11 @@ We treat this framework as a practical audit tool for the field. \citet{yang2026
 This paper asks a simple question: is the reported progress on the TOP benchmark real? We find that it is not even measurable. The reasons are surprisingly mundane. They stem from defects in evaluation code, test-set selection bias, missing baselines, and single-run comparisons. Our contributions are:
 \begin{enumerate}
   \item A shared evaluation harness that enforces strict protocol and makes the HINT/MEXA-CTP comparison well-posed (Section~\ref{sec:methods}).
-  \item Ten code-level defects catalogued with before/after quantification (Table~\ref{tab:defects}), including two that actively concealed each other and one --- an empty embedding cache --- that silently disables HINT's eligibility-criteria modality.
+  \item Ten code-level defects catalogued with before/after quantification (Table~\ref{tab:defects}), including two that actively concealed each other and one --- an empty embedding cache --- that silently disables HINT's eligibility-criteria modality (which, once repaired and re-scored, we measure to be inert: $\Delta$ROC-AUC $=-0.0001$).
   \item A corrected comparison across all three trial phases (Section~\ref{sec:results}), showing that the published advantage completely disappears under a fair protocol.
   \item A baseline-side stress test (Section~\ref{sec:tabfm}): a zero-training tabular foundation model and a validation-selected model$\times$feature grid both match HINT in every phase, with all predictive signal traceable to disease codes and none to molecular structure.
   \item The observation that metric artefacts systematically inject unpredictable noise into model rankings (Section~\ref{sec:metricweak}).
-  \item Six of our own directional findings that did not survive replication (Section~\ref{sec:wrong})---proving that effect sizes on this benchmark lie below its noise floor.
+  \item Seven of our own directional findings that did not survive replication (Section~\ref{sec:wrong})---demonstrating that effect sizes on this benchmark lie below its sampling-noise floor.
 \end{enumerate}
 \subsection{Related work}
 \paragraph{The two models we re-evaluate.} HINT \citep{fu2022hint} relies on a hierarchical interaction network. It processes each trial through three parallel modalities. A message-passing network over SMILES graphs captures drug molecules. An ontology-aware ICD embedding handles target diseases. BioBERT reads the eligibility criteria. HINT then pushes these embeddings through pharmacology-knowledge modules---specifically, an ADMET block and a pharmacokinetic aggregator built from Highway networks. It fuses them in an interaction module before propagating the result through a dynamic attentive graph convolutional network, where the nodes represent the trial components. Its standard ablations---\texttt{Only\_Molecule}, \texttt{Only\_Disease}, \texttt{Interaction}, and \texttt{HINT\_nograph} (the full model with the graph removed)---let one isolate exactly what each modality contributes. We rely on these heavily in Section~\ref{sec:ablation}.
@@ -199,7 +200,7 @@ The published comparison measures the two models under completely different rule
 \item \textbf{Fixed $0.5$ threshold.} Both models report their F1 scores using a hard-coded $0.5$ decision cutoff. However, the benchmark's positive rate fluctuates wildly---from $0.55$ in phase~I up to $0.75$ in phase~III. Under these conditions, a fixed threshold forces F1 to measure the underlying class prior rather than the actual ranking quality. To prove this, we simply recalibrated the threshold on validation data. That one change alone boosted HINT's phase~I F1 score by $+0.119$ (Section~\ref{sec:results}).
 \item \textbf{PR-AUC on binarised predictions.} HINT computes its PR-AUC only after thresholding the raw predictions into strict $0/1$ labels, instead of using the continuous scores. This calculation error understates the true PR-AUC by anywhere from $0.020$ to $0.081$. Far more dangerously, it completely \emph{reorders} the performance rankings of the models (Section~\ref{sec:metricweak}).
 \item \textbf{No trivial baseline.} Neither paper reports an all-positive reference score. Without this trivial baseline, the absolute F1 numbers become meaningless. For instance, achieving an F1 of $0.86$ sounds impressive on paper. Yet, on a test set with $0.75$ positive labels, simply guessing ``every trial succeeds'' yields the exact same score.
-\item \textbf{The wrong kind of uncertainty, and no test of the difference.} MEXA-CTP does report a $\pm$ in its tables, but it is a \emph{test-resampling} bootstrap sd over $10$ samples of a \emph{single} model --- not the two quantities that decide whether a gain is real: the \emph{training-seed} variance (re-running the same model from a different seed) and a paired \emph{test of the difference} between two models. Reporting a per-model bootstrap band and then reading off a winner from non-overlapping bands is exactly the error Section~\ref{sec:power} corrects: two bands can overlap while the paired difference is significant, and vice versa. On a benchmark where the sampling noise on a between-model \emph{difference} (DeLong SE $\approx0.018$) is itself larger than the $\sim0.01$--$0.03$ effect sizes claimed, the missing difference test is the omission that matters most.
+\item \textbf{The wrong kind of uncertainty, and no test of the difference.} MEXA-CTP does report a $\pm$ in its tables, but it is a \emph{test-resampling} bootstrap sd over $10$ samples of a \emph{single} model --- not the two quantities that decide whether a gain is real: the \emph{training-seed} variance (re-running the same model from a different seed) and a paired \emph{test of the difference} between two models. Reporting a per-model bootstrap band and then reading off a winner from non-overlapping bands is exactly the error Section~\ref{sec:power} corrects: two bands can overlap while the paired difference is significant, and vice versa. On a benchmark where the sampling noise on a between-model \emph{difference} (DeLong SE $\approx0.018$) is comparable to or larger than the $\sim0.01$--$0.03$ effect sizes claimed, the missing difference test is the omission that matters most.
 \end{enumerate}
 Each of these defects works independently to either flatter the more complex model or mask the random noise that would otherwise undercut its claims. Combined, they ensure the published comparison is not just imprecise, but fundamentally ill-posed.
 \subsection{Shared evaluation harness}
@@ -826,9 +827,9 @@ To turn ``no molecular signal is testable'' from a claim into a measurement, we 
 degenerate trials and re-measure on the non-degenerate $54\%$ ($618/1146$) of phase-III test.
 Two models agree there. HINT's \emph{own} molecule branch (\texttt{Only\_Molecule}) rises only
 from ROC-AUC $0.540$ to $0.559$ --- still essentially chance where the molecule is genuinely
-distinct; and a gradient booster on molecule physicochemistry reaches only $0.619$, itself the
-drug-recurrence base rate ($0.614$) and below the disease-only $0.669$ on the same subset, with
-the best single molecular descriptor at $0.575$. So even on the clean half, neither HINT's
+distinct; and a gradient booster on molecule physicochemistry reaches only $0.619$, on the level of
+the drug-recurrence base rate recomputed on the \emph{same} $618$-trial subset ($0.647$) and below
+the disease-only $0.669$ there, with the best single molecular descriptor at $0.575$. So even on the clean half, neither HINT's
 D-MPNN nor a physicochemical model extracts a structure-to-outcome signal: what looks molecular
 is drug identity/recurrence (Section~\ref{sec:dataquality}), not chemistry.
 
@@ -862,6 +863,41 @@ per-phase historical likelihood-of-approval tables are not an academic curiosity
 industry \citep{hay2014clinical,wong2019estimation}. The benchmark's deep models are thus asked
 to beat a lookup that portfolio teams already consult for free --- and, on TOP, they do not.
 
+Table~\ref{tab:ladder} places every model and baseline on one phase-III ladder. Read top to
+bottom it makes the thesis visual: as architectural complexity rises the score does not move ---
+the deep models sit mid-ladder, within noise of a random forest --- while as the method gets
+simpler and more transparent the score, if anything, rises, with a two-column historical
+base-rate lookup at the very top.
+\begin{table}[t]
+\centering\small
+\caption{The phase-III ladder: every model and baseline on the same test set, ordered by
+ROC-AUC. Complexity does not help (the deep models sit mid-ladder, within noise of a random
+forest); a transparent two-column base-rate lookup tops it. Lookup values are validation-weighted
+(Section~\ref{sec:dataquality}); ICD-only is validation-selected.}
+\label{tab:ladder}
+\begin{tabular}{lc}
+\toprule
+Model / baseline (phase~III) & ROC-AUC \\
+\midrule
+\textsc{Trivial} (all-positive) & 0.500 \\
+MEXA-CTP (released checkpoint) & 0.518 \\
+Logistic regression & 0.554 \\
+Random forest & 0.620 \\
+Gradient boosting & 0.651 \\
+TabFM (zero-training) & 0.668 \\
+ICD-only, validation-selected & 0.671 \\
+MEXA-CTP (retrained) & 0.674 \\
+Target-encoding ($2$ features) & 0.676 \\
+CatBoost (tuned) & 0.680 \\
+\textbf{HINT} & \textbf{0.685} \\
+XGBoost (tuned) & 0.691 \\
+ICD-code base-rate lookup & 0.694 \\
+Two-column base-rate lookup & \textbf{0.700} \\
+\quad on well-supported cells & 0.723 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \emph{The lookup, defined precisely.} So the comparison cannot be dismissed as an underspecified
 straw man, we state the lookup exactly. Both channels are \emph{unsmoothed} empirical means: the
 disease channel returns the mean training label of the test trial's exact (ICD-code, phase) cell,
@@ -875,8 +911,9 @@ apparent edge but not raise it, so the unsmoothed version is the conservative, s
 The lookup is thus fully specified by three numbers (two channel definitions and one fallback) and
 reproducible from \texttt{data\_audit.py}. Nor is its performance an artefact of the fallback:
 restricting to the $902$ test trials where both channels have training support (no fallback used)
-\emph{raises} it to ROC-AUC $0.726$, and restricting to ICD cells backed by $\ge5$ training trials
-gives $0.723$ --- the lookup is strongest exactly where it has real data. Critically, the one free hyperparameter --- how to weight
+\emph{raises} the lookup to ROC-AUC $0.726$ --- above HINT on the \emph{same} $902$ trials
+($0.712$) --- and restricting to ICD cells backed by $\ge5$ training trials gives $0.723$; the
+lookup is strongest exactly where it has real data, and still not beaten by the deep model there. Critically, the one free hyperparameter --- how to weight
 the two channels --- is \emph{selected on validation}, not on test, so we do not commit the
 test-peeking error we criticise elsewhere: sweeping the disease/drug mixing weight on the phase-III
 \emph{validation} split picks $w{=}0.70$ (disease), which on test gives ROC-AUC $0.701$ ---
@@ -1301,7 +1338,7 @@ model's evaluation propagates into every comparison made against it}. HINT is th
 % =====================================================================
 \subsection{The limit of measurability}
 Finally, we bound what any comparison on this benchmark can establish at its current size.
-\subsubsection{Statistical power: differences below $0.05$ ROC-AUC are unverifiable}
+\subsubsection{Statistical power: phase-III differences below $0.05$ ROC-AUC are unverifiable}
 \label{sec:power}
 The comparisons above should be read through what the benchmark can actually resolve. We make
 this quantitative on phase~III (\texttt{stats\_rigor.py}).
@@ -1330,12 +1367,13 @@ The metric conclusions do not depend on the choice of test or on a single lucky 
 \emph{But ``not significant'' is not ``equivalent.''} A two one-sided tests (TOST) procedure at
 an equivalence margin $\delta=0.02$ does \emph{not} establish
 equivalence for HINT vs TabFM ($p=0.45$): the data are consistent both with no difference and
-with a difference up to $\sim$0.05. We set $\delta=0.02$ on two aligned grounds: it is the
-benchmark's own seed-to-seed noise scale (so a ``difference'' smaller than the noise is not
-meaningfully a difference), and it is clinically negligible --- at the phase-III base rate a
-$0.02$ ROC-AUC shift moves essentially no go/no-go decision and is dwarfed by the label noise of
-a manually curated outcome (Section~\ref{sec:intro}); a margin this small makes the equivalence
-test \emph{harder} to pass, so failing it is a statement about power, not a lax threshold. We therefore avoid the word ``equivalent'' and state the
+with a difference up to $\sim$0.05. We set $\delta=0.02$ on two aligned grounds: it is on the scale
+of the benchmark's test-sampling standard error for a between-model difference ($\approx0.018$; a
+``difference'' smaller than the noise on which it is measured is not meaningfully a difference), and
+it is clinically negligible --- at the phase-III base rate a $0.02$ ROC-AUC shift moves essentially
+no go/no-go decision and is dwarfed by the label noise of a manually curated outcome
+(Section~\ref{sec:intro}); a margin this small makes the equivalence test \emph{harder} to pass, so
+failing it is a statement about power, not a lax threshold. We therefore avoid the word ``equivalent'' and state the
 weaker, correct claim: no difference is \emph{detectable}, because the study is underpowered.
 Throughout the paper, where we call two models ``indistinguishable'' we mean precisely this ---
 no difference detectable at this sample size, i.e.\ below the minimum detectable effect derived
@@ -1376,7 +1414,7 @@ also, in part, a statement about power. This is the quantitative form of the pap
 \node[red,anchor=south west,font=\scriptsize,align=left] at (axis cs:0.051,4.4){MDE $=0.05$\\(80\% power)};
 \addplot[only marks,mark=*,black,mark size=1.8pt]
   coordinates {(0.0004,0) (0.009,1) (0.016,2) (0.018,3) (0.034,5)};
-\addplot[only marks,mark=*,black,mark size=1.8pt]
+\addplot[only marks,mark=square,black,mark size=2.6pt]
   coordinates {(0.0024,4)};
 \draw[black,line width=3pt] (axis cs:0.008,6) -- (axis cs:0.020,6);
 \end{axis}
@@ -1389,9 +1427,10 @@ Table~2 they are only $+0.020$, $+0.017$ and $+0.008$ for phases~I, II and~III (
 $0.008$--$0.020$) --- about half what the percentage suggests, and entirely inside the shaded
 region. Our fusion and between-model differences, and even HINT's advantage over gradient
 boosting, likewise all fall where a difference cannot be verified at this benchmark's phase-III
-size. The ``HINT training-seed sd'' point is a genuine $5$-seed retraining standard deviation
-($0.0024$; Section~\ref{sec:power}) --- HINT is reproducible across seeds, and the noise that
-swamps between-model effects is test-set sampling, not seed.}
+size. The ``HINT training-seed sd'' point is drawn as an open square ($\square$) to mark that it is
+a \emph{standard deviation} (a genuine $5$-seed retraining sd, $0.0024$; Section~\ref{sec:power}),
+not an effect-size estimate like the filled circles --- HINT is reproducible across seeds, and the
+noise that swamps between-model effects is test-set sampling, not seed.}
 \label{fig:noisefloor}
 \end{figure}
 
@@ -1410,10 +1449,11 @@ $\Delta$AUC), training-seed (TabFM $32$-member sd $0.0011$ over five seeds; for 
 \emph{measure} it by retraining five times, seeds $2023$--$2027$: test ROC-AUC $0.685\pm0.0024$,
 range $[0.682,0.687]$ --- only about twice TabFM's and, importantly, an order of magnitude
 \emph{below} the test-resampling SE that sets the MDE), and split variance (a single temporal
-split; we estimate it as the largest term by re-scoring on time-ordered sub-windows of the test
-set, where both the lookup and HINT vary with sd $\approx0.02$--$0.04$ --- comparable to or above
-the test-sampling SE, and a lower bound on the variance of a true re-split at a different cut
-date). The single $n{=}2$ difference of
+split; as an \emph{indicative} probe we re-score on time-ordered sub-windows of the test set,
+where the lookup and HINT vary with sd $\approx0.02$--$0.04$. This is only a gauge, not a clean
+estimate: each window has a fraction of the trials, so its variance is inflated by within-window
+\emph{sampling} noise and cannot be read as the split term alone --- a proper estimate would
+re-derive train/test at several cut dates, which we leave to future work). The single $n{=}2$ difference of
 $0.023$ we reported earlier (run~A vs run~B, Table~\ref{tab:ablation}) additionally reinitialised
 the encoders and is an outlier against this five-seed sd; we correct the record here. The
 takeaway is unchanged and in fact firmer: HINT's training-seed variance is small, so the noise
@@ -1479,7 +1519,8 @@ Seed noise ($\sim$0.02--0.03) swamps all effects & $n{=}2$ run-to-run $0.023$ & 
 \end{table*}
 The first illustrates a specific statistical error worth naming. The effect was judged real
 because it appeared to be many standard deviations from zero---but the standard deviation
-had been estimated from a \emph{different} configuration ($\tau=0.3$, seed sd $0.0024$) than
+had been estimated from a \emph{different} MEXA-CTP routing configuration ($\tau=0.3$, seed sd
+$0.0024$ --- a coincidence of value with, but unrelated to, HINT's five-seed sd above) than
 the one under test ($\tau=0.0$, seed sd $0.0221$, roughly ten times larger). Noise must be
 estimated per configuration.
 The fourth is the sharpest. Selecting the best of twelve pipelines by test score is exactly
@@ -1534,8 +1575,10 @@ training-seed sd), this is the expected failure mode, not an unusual one.
         TabFM's ($0.0011$) and an order of magnitude below the test-resampling SE ($0.018$) that
         sets the MDE. This supersedes the single $n{=}2$ difference of $0.023$ we first reported
         (run~A vs run~B), which reinitialised the encoders and was an outlier; no conclusion
-        rested on it, and the corrected, smaller sd only firms the power argument. The remaining
-        unmeasured term is split variance (a single temporal split).
+        rested on it, and the corrected, smaller sd only firms the power argument. The one term we
+        do not cleanly isolate is split variance (a single temporal split); our sub-window gauge
+        (Section~\ref{sec:power}) puts it at sd $\approx0.02$--$0.04$ but is confounded with
+        per-window sampling noise, so a multi-cut re-split is the proper measurement, left to future work.
   \item \textbf{Baseline features.} Classical baselines use MEXA-CTP's embeddings, not
         HINT's own encoders. A fully matched comparison would also run gradient boosting on
         HINT's features.
@@ -1600,7 +1643,7 @@ once the choice of combiner and metric is corrected for: the small phase-III edg
 against the weaker member and does not survive multiple-comparison correction, so it is not
 evidence for the deep interaction mechanism.
 The broader result is that claimed effect sizes on this benchmark lie below measurement
-noise. We demonstrate this not only by measuring the noise but by documenting six of our own directional findings that did not survive replication. Improvement claims on TOP should be accompanied by multiple seeds, validation-based selection of every free choice, confidence intervals, and a trivial baseline---or they are not verifiable.
+noise. We demonstrate this not only by measuring the noise but by documenting seven of our own directional findings that did not survive replication. Improvement claims on TOP should be accompanied by multiple seeds, validation-based selection of every free choice, confidence intervals, and a trivial baseline---or they are not verifiable.
 Two directions follow. In the short term, a shared evaluation harness costs little and should accompany any benchmark whose reference implementation is reused as a baseline, since a defect in that implementation's evaluation code silently biases every subsequent comparison. In the longer term, retrospective benchmarks may not be repairable by protocol alone: CT~Open \citep{wang2025ctopen} argues that contamination is a second, independent failure mode, and its live time-stamped design removes both at once. We regard that as the right destination; the contribution of this paper is to show how much of the existing retrospective literature does not survive the first of the two checks.
 \paragraph{What a $0.70$-ROC model could actually do.} It is worth being concrete about the
 clinical stakes, since accuracy is not benefit \citep{fritz2024effect}. At ROC-AUC $\approx0.70$
