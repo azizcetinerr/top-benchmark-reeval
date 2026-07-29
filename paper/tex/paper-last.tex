@@ -25,6 +25,7 @@
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
 \usepackage{enumitem}
+\usepackage{url}
 % If the frontmatter runs over more than one page
 % use the longmktitle option.
 %\documentclass[a4paper,fleqn,longmktitle]{cas-dc}
@@ -1605,7 +1606,7 @@ exact commit hashes audited are listed with the code release.\footnote{Repositor
 and audited commit hashes are recorded in \texttt{DISCLOSURE.md} in the code release and
 inserted here in the camera-ready.} Our aim is to harden a shared benchmark that the whole
 subfield depends on, and we would welcome corrections from the original authors.
-\paragraph{Reproducibility.} All code, raw per-trial predictions and result tables are released. Every table in this paper is regenerated from stored predictions without retraining. Settings: seed 2023, ICD-10-CM 2024, BioBERT \texttt{dmis-lab/biobert-v1.1}, 1000 bootstrap resamples at 95\% for all confidence intervals and paired tests, except the phase-III multiple-comparison stress test (Section~\ref{sec:optionb}), which uses 10{,}000 resamples to stabilise the corrected $p$-values. The tabular baselines of Section~\ref{sec:tabfm} additionally use TabFM (\texttt{tabfm-1.0.0-jax}) with $32$ ensemble members and RDKit 2026.03 for molecular descriptors and Morgan fingerprints. Feature construction: RDKit descriptors are aggregated across a trial's drugs by mean and max; Morgan/ECFP fingerprints use radius $2$ and $256$ bits, combined across drugs by bit-union (a bit is set if present in any drug); GRAM disease features are multi-hot over ontology ancestors. The tuned gradient-boosting baselines (Section~\ref{sec:gbdt}) use XGBoost 3.2, LightGBM 4.7 and CatBoost 1.2, each grid-selected on validation.
+\paragraph{Reproducibility.} All code, raw per-trial predictions and result tables are released at \url{https://github.com/azizcetinerr/top-benchmark-reeval}. All defect audits are time-stamped: the HINT repository was audited at commit \texttt{8dc0497} (July 2026), and the MEXA-CTP commit is recorded with the code release (\texttt{DISCLOSURE.md}). Every table in this paper is regenerated from stored predictions without retraining. Settings: seed 2023, ICD-10-CM 2024, BioBERT \texttt{dmis-lab/biobert-v1.1}, 1000 bootstrap resamples at 95\% for all confidence intervals and paired tests, except the phase-III multiple-comparison stress test (Section~\ref{sec:optionb}), which uses 10{,}000 resamples to stabilise the corrected $p$-values. The tabular baselines of Section~\ref{sec:tabfm} additionally use TabFM (\texttt{tabfm-1.0.0-jax}) with $32$ ensemble members and RDKit 2026.03 for molecular descriptors and Morgan fingerprints. Feature construction: RDKit descriptors are aggregated across a trial's drugs by mean and max; Morgan/ECFP fingerprints use radius $2$ and $256$ bits, combined across drugs by bit-union (a bit is set if present in any drug); GRAM disease features are multi-hot over ontology ancestors. The tuned gradient-boosting baselines (Section~\ref{sec:gbdt}) use XGBoost 3.2, LightGBM 4.7 and CatBoost 1.2, each grid-selected on validation.
 %\bibliographystyle{model1-num-names}
 \bibliographystyle{cas-model2-names}
 \bibliography{cas-refs}

@@ -10,7 +10,7 @@ table is filled, the paper says only that reports were *prepared and are being f
 upgrade that wording to "reported" until the URLs exist.
 
 Audited repositories (fill in the fork/commit you actually ran):
-- HINT: `https://github.com/futianfan/clinical-trial-outcome-prediction` — commit `__________`
+- HINT: `https://github.com/futianfan/clinical-trial-outcome-prediction` — commit `8dc0497f23fdb84e2905da7655924a91e6e79798` (audited 2026-07)
 - MEXA-CTP: `<upstream repo URL>` — commit `__________`
 
 ---
@@ -45,7 +45,7 @@ Audited repositories (fill in the fork/commit you actually ran):
 > `super().__init__` call, and checkpoint loading fails under PyTorch ≥2.6 (`weights_only`
 > default change).
 >
-> Happy to send a PR for any of these. Commit audited: `__________`.
+> Happy to send a PR for any of these. Commit audited: `8dc0497f23fdb84e2905da7655924a91e6e79798`.
 
 ---
 
@@ -88,5 +88,5 @@ Audited repositories (fill in the fork/commit you actually ran):
 
 | Repo | Defects | Issue URL | Date filed | Commit audited |
 |------|---------|-----------|------------|----------------|
-| HINT | D3, D4, D5, D7, D10 | `__________` | `__________` | `__________` |
+| HINT | D3, D4, D5, D7, D10 | `__________` | `__________` | `8dc0497f23fdb84e2905da7655924a91e6e79798` |
 | MEXA-CTP | D1, D2, D6, D8, D9 | `__________` | `__________` | `__________` |
