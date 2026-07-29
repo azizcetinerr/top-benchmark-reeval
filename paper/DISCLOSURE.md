@@ -11,7 +11,7 @@ upgrade that wording to "reported" until the URLs exist.
 
 Audited repositories (fill in the fork/commit you actually ran):
 - HINT: `https://github.com/futianfan/clinical-trial-outcome-prediction` — commit `8dc0497f23fdb84e2905da7655924a91e6e79798` (audited 2026-07)
-- MEXA-CTP: `<upstream repo URL>` — commit `__________`
+- MEXA-CTP: `<upstream repo URL>` — commit `b898dbb41930197187fe3867e3616ffd406a48a6` (audited 2026-07)
 
 ---
 
@@ -80,7 +80,7 @@ Audited repositories (fill in the fork/commit you actually ran):
 > mechanism (buggy ≥ fixed) and the only powered comparison is not significant, we are *not*
 > claiming your reported numbers are wrong — only that the mechanism as shipped is inert and the
 > comparison to HINT is confounded by the metric bugs above. Details in our paper; happy to
-> share the preprint and send PRs. Commit audited: `__________`.
+> share the preprint and send PRs. Commit audited: `b898dbb41930197187fe3867e3616ffd406a48a6`.
 
 ---
 
@@ -89,4 +89,4 @@ Audited repositories (fill in the fork/commit you actually ran):
 | Repo | Defects | Issue URL | Date filed | Commit audited |
 |------|---------|-----------|------------|----------------|
 | HINT | D3, D4, D5, D7, D10 | `__________` | `__________` | `8dc0497f23fdb84e2905da7655924a91e6e79798` |
-| MEXA-CTP | D1, D2, D6, D8, D9 | `__________` | `__________` | `__________` |
+| MEXA-CTP | D1, D2, D6, D8, D9 | `__________` | `__________` | `b898dbb41930197187fe3867e3616ffd406a48a6` |
