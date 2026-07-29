@@ -11,7 +11,7 @@ upgrade that wording to "reported" until the URLs exist.
 
 Audited repositories (fill in the fork/commit you actually ran):
 - HINT: `https://github.com/futianfan/clinical-trial-outcome-prediction` — commit `8dc0497f23fdb84e2905da7655924a91e6e79798` (audited 2026-07)
-- MEXA-CTP: `<upstream repo URL>` — commit `b898dbb41930197187fe3867e3616ffd406a48a6` (audited 2026-07)
+- MEXA-CTP: `https://github.com/murai-lab/MEXA-CTP` — commit `b898dbb41930197187fe3867e3616ffd406a48a6` (audited 2026-07)
 
 ---
 
@@ -88,5 +88,5 @@ Audited repositories (fill in the fork/commit you actually ran):
 
 | Repo | Defects | Issue URL | Date filed | Commit audited |
 |------|---------|-----------|------------|----------------|
-| HINT | D3, D4, D5, D7, D10 | `__________` | `__________` | `8dc0497f23fdb84e2905da7655924a91e6e79798` |
-| MEXA-CTP | D1, D2, D6, D8, D9 | `__________` | `__________` | `b898dbb41930197187fe3867e3616ffd406a48a6` |
+| HINT | D3, D4, D5, D7, D10 | https://github.com/futianfan/clinical-trial-outcome-prediction/issues/15 | 2026-07-29 | `8dc0497f23fdb84e2905da7655924a91e6e79798` |
+| MEXA-CTP | D1, D2, D6, D8, D9 | https://github.com/murai-lab/MEXA-CTP/issues/2 | 2026-07-29 | `b898dbb41930197187fe3867e3616ffd406a48a6` |

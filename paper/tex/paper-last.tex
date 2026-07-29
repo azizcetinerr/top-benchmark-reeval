@@ -1600,12 +1600,14 @@ binarised PR-AUC computation) as an ecosystem reproducibility hazard, not as aut
 Each is reproducible from the unmodified public repositories, and several --- the empty cache
 and the released-checkpoint reload variance in particular --- silently affect anyone who
 re-runs the code, which is precisely why they matter. Following responsible-disclosure
-practice, we have prepared defect reports for the respective project maintainers and are filing
-them on their public issue trackers alongside this submission; the issue references and the
-exact commit hashes audited are listed with the code release.\footnote{Repository issue URLs
-and audited commit hashes are recorded in \texttt{DISCLOSURE.md} in the code release and
-inserted here in the camera-ready.} Our aim is to harden a shared benchmark that the whole
-subfield depends on, and we would welcome corrections from the original authors.
+practice, we reported the defects to the respective project maintainers through their public
+issue trackers before submission: HINT issue \#15
+(\url{https://github.com/futianfan/clinical-trial-outcome-prediction/issues/15}; audited commit
+\texttt{8dc0497}) and MEXA-CTP issue \#2 (\url{https://github.com/murai-lab/MEXA-CTP/issues/2};
+audited commit \texttt{b898dbb}), both also recorded in \texttt{DISCLOSURE.md} with the code
+release. Our aim is to harden a shared
+benchmark that the whole subfield depends on, and we would welcome corrections from the original
+authors.
 \paragraph{Reproducibility.} All code, raw per-trial predictions and result tables are released at \url{https://github.com/azizcetinerr/top-benchmark-reeval}. All defect audits are time-stamped: the HINT repository was audited at commit \texttt{8dc0497} and MEXA-CTP at commit \texttt{b898dbb} (both July 2026; full hashes in \texttt{DISCLOSURE.md}). Every table in this paper is regenerated from stored predictions without retraining. Settings: seed 2023, ICD-10-CM 2024, BioBERT \texttt{dmis-lab/biobert-v1.1}, 1000 bootstrap resamples at 95\% for all confidence intervals and paired tests, except the phase-III multiple-comparison stress test (Section~\ref{sec:optionb}), which uses 10{,}000 resamples to stabilise the corrected $p$-values. The tabular baselines of Section~\ref{sec:tabfm} additionally use TabFM (\texttt{tabfm-1.0.0-jax}) with $32$ ensemble members and RDKit 2026.03 for molecular descriptors and Morgan fingerprints. Feature construction: RDKit descriptors are aggregated across a trial's drugs by mean and max; Morgan/ECFP fingerprints use radius $2$ and $256$ bits, combined across drugs by bit-union (a bit is set if present in any drug); GRAM disease features are multi-hot over ontology ancestors. The tuned gradient-boosting baselines (Section~\ref{sec:gbdt}) use XGBoost 3.2, LightGBM 4.7 and CatBoost 1.2, each grid-selected on validation.
 %\bibliographystyle{model1-num-names}
 \bibliographystyle{cas-model2-names}
