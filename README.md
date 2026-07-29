@@ -65,9 +65,10 @@ The `hint/data/` phase split CSVs are included for convenience, together with th
 disease-ancestor map (`icdcode2ancestor_dict.pkl`) and the shipped empty criteria-embedding
 cache (`sentence2embedding.pkl`, 6 bytes — the defect D5 evidence). The full raw TOP benchmark
 and the HINT/MEXA-CTP model code come from the upstream repositories:
+Audited repositories (fill in the fork/commit you actually ran):
 
-- HINT / TOP benchmark: https://github.com/futianfan/clinical-trial-outcome-prediction
-- MEXA-CTP: the authors' released repository
+HINT: https://github.com/futianfan/clinical-trial-outcome-prediction 
+MEXA-CTP: https://github.com/murai-lab/MEXA-CTP
 
 Raw model checkpoints, the 55 MB `raw_data.csv`, ADMET/ICD auxiliary files and large intermediate
 result files are **not** included here; they are re-derivable from the upstream data.
