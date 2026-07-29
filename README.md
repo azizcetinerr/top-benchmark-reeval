@@ -67,8 +67,8 @@ cache (`sentence2embedding.pkl`, 6 bytes — the defect D5 evidence). The full r
 and the HINT/MEXA-CTP model code come from the upstream repositories:
 Audited repositories (fill in the fork/commit you actually ran):
 
-HINT: https://github.com/futianfan/clinical-trial-outcome-prediction 
-MEXA-CTP: https://github.com/murai-lab/MEXA-CTP
+    -  HINT: https://github.com/futianfan/clinical-trial-outcome-prediction 
+    -  MEXA-CTP: https://github.com/murai-lab/MEXA-CTP
 
 Raw model checkpoints, the 55 MB `raw_data.csv`, ADMET/ICD auxiliary files and large intermediate
 result files are **not** included here; they are re-derivable from the upstream data.
