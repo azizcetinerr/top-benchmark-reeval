@@ -1756,6 +1756,24 @@ release. Our aim is to harden a shared
 benchmark that the whole subfield depends on, and we would welcome corrections from the original
 authors.
 \paragraph{Reproducibility.} All code, raw per-trial predictions and result tables are released at \url{https://github.com/azizcetinerr/top-benchmark-reeval}. All defect audits are time-stamped: the HINT repository was audited at commit \texttt{8dc0497} and MEXA-CTP at commit \texttt{b898dbb} (both July 2026; full hashes in \texttt{DISCLOSURE.md}). Every table in this paper is regenerated from stored predictions without retraining. Settings: seed 2023, ICD-10-CM 2024, BioBERT \texttt{dmis-lab/biobert-v1.1}, 1000 bootstrap resamples at 95\% for all confidence intervals and paired tests, except the phase-III multiple-comparison stress test (Section~\ref{sec:optionb}), which uses 10{,}000 resamples to stabilise the corrected $p$-values. The tabular baselines of Section~\ref{sec:tabfm} additionally use TabFM (\texttt{tabfm-1.0.0-jax}) with $32$ ensemble members and RDKit 2026.03 for molecular descriptors and Morgan fingerprints. Feature construction: RDKit descriptors are aggregated across a trial's drugs by mean and max; Morgan/ECFP fingerprints use radius $2$ and $256$ bits, combined across drugs by bit-union (a bit is set if present in any drug); GRAM disease features are multi-hot over ontology ancestors. The tuned gradient-boosting baselines (Section~\ref{sec:gbdt}) use XGBoost 3.2, LightGBM 4.7 and CatBoost 1.2, each grid-selected on validation.
+\section*{Declaration of competing interests}
+% https://declarations.elsevier.com/
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Funding}
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+\section*{CRediT authorship contribution statement}
+% https://credit.niso.org
+\textbf{Aziz Muammer Çetiner:} Conceptualization, Methodology, Software, Validation, Formal analysis, Investigation, Data curation, Writing -- original draft, Writing -- review \& editing, Visualization.
+\textbf{Kolawole John Adebayo:} Conceptualization, Methodology, Validation, Writing -- review \& editing, Supervision, Project administration.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
+During the preparation of this work the authors used Claude (Anthropic) to help identify candidate tools, methods, and metrics that could be used to measure and evaluate specific aspects of the analysis. All methodological choices were evaluated, selected, and verified by the authors, who reviewed and edited all content and take full responsibility for the content of the published article.
+
+\section*{Ethics statement}
+This study did not require ethical approval. It is a secondary, computational re-analysis of the publicly available TOP benchmark, which is derived from de-identified, publicly accessible ClinicalTrials.gov records. No human participants, human data, or biological materials were collected or accessed by the authors, and no new clinical data were generated.
+
 %\bibliographystyle{model1-num-names}
 \bibliographystyle{cas-model2-names}
 \bibliography{cas-refs}
