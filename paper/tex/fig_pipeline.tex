@@ -1,0 +1,84 @@
+% fig_pipeline.tex — study-overview figure (TikZ, vector, no external image).
+%
+% Requires in the preamble:  \usepackage{tikz}
+%                            \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+%
+% Use inside the paper as:
+%   \begin{figure*}[t]\centering\resizebox{\textwidth}{!}{\input{fig_pipeline}}
+%   \caption{...}\label{fig:pipeline}\end{figure*}
+%
+% Or compile standalone:  pdflatex on a \documentclass[border=8pt]{standalone} wrapper.
+\begin{tikzpicture}[font=\sffamily,
+  panel/.style={rounded corners=7pt, draw=blue!30, line width=1pt, fill=blue!1, inner sep=10pt},
+  hdr/.style={font=\sffamily\bfseries\small, text=black},
+  b/.style={rounded corners=3pt, draw=black!50, fill=black!4, align=center,
+            inner xsep=5pt, inner ysep=4pt, font=\sffamily\scriptsize, text width=30mm},
+  red/.style={b, draw=red!55, fill=red!7},
+  blu/.style={b, draw=blue!55, fill=blue!8},
+  grn/.style={b, draw=green!45!black, fill=green!10},
+  yel/.style={b, draw=orange!70!black, fill=orange!12},
+  gry/.style={b, draw=black!45, fill=black!6, text width=26mm},
+  dsh/.style={b, dashed, fill=white},
+  ar/.style={-{Stealth[length=3.2mm,width=2.4mm]}, line width=1.1pt, draw=blue!60!black}]
+
+%============ STAGE 1 : INPUTS ============
+\node[red] (r1) {\textbf{HINT} repo\\\scriptsize commit \texttt{8dc0497}};
+\node[red, below=3mm of r1] (r2) {\textbf{MEXA-CTP} repo\\\scriptsize commit \texttt{b898dbb}};
+\node[dsh, below=3mm of r2] (r3) {TOP benchmark\\\scriptsize temporal split, 2014};
+\begin{scope}[on background layer]
+\node[panel, fit=(r1)(r2)(r3)] (P1) {};
+\end{scope}
+\node[hdr, above=1.5mm of P1] {Inputs};
+
+%============ STAGE 2 : FORENSIC AUDIT ============
+\node[blu, right=13mm of r1.east, anchor=west] (d1) {\textbf{D1} mechanism in a\\plain \texttt{dict} $\Rightarrow$ 0/264 trained};
+\node[blu, below=2.5mm of d1] (d3) {\textbf{D3--D4} PR-AUC on\\binarised; F1 @ 0.5};
+\node[blu, below=2.5mm of d3] (d5) {\textbf{D5} empty criteria\\cache $\Rightarrow$ zero vector};
+\node[dsh, below=2.5mm of d5, text width=30mm] (d10) {D2, D6--D10\\\scriptsize runtime \& reproducibility};
+\begin{scope}[on background layer]
+\node[panel, fit=(d1)(d3)(d5)(d10)] (P2) {};
+\end{scope}
+\node[hdr, above=1.5mm of P2] {Forensic audit};
+
+%============ STAGE 3 : HARNESS ============
+\node[grn, right=13mm of d1.east, anchor=west, text width=32mm] (h1) {threshold @ \emph{validation}};
+\node[grn, below=2.5mm of h1, text width=32mm] (h2) {ranking on \emph{continuous} scores};
+\node[grn, below=2.5mm of h2, text width=32mm] (h3) {bootstrap 95\% CIs};
+\node[grn, below=2.5mm of h3, text width=32mm] (h4) {trivial all-positive baseline};
+\node[dsh, below=2.5mm of h4, text width=32mm] (h5) {one evaluator, all models};
+\begin{scope}[on background layer]
+\node[panel, fit=(h1)(h2)(h3)(h4)(h5)] (P3) {};
+\end{scope}
+\node[hdr, above=1.5mm of P3] {Shared corrected harness};
+
+%============ STAGE 4 : MODEL PANEL ============
+\node[yel, right=13mm of h1.east, anchor=west, text width=34mm] (m1) {\textbf{Deep} \quad HINT 0.685\\MEXA-CTP 0.674};
+\node[yel, below=2.5mm of m1, text width=34mm] (m2) {\textbf{Tuned GBDT}\\XGB 0.691 · Cat 0.680};
+\node[yel, below=2.5mm of m2, text width=34mm] (m3) {\textbf{Zero-training}\\TabFM 0.668 · TabPFN 0.647};
+\node[grn, below=2.5mm of m3, text width=34mm] (m4) {\textbf{Base-rate lookup}\\disease code + drug \textbf{0.700}};
+\begin{scope}[on background layer]
+\node[panel, fit=(m1)(m2)(m3)(m4)] (P4) {};
+\end{scope}
+\node[hdr, above=1.5mm of P4] {Model panel (phase III)};
+
+%============ STAGE 5 : ADJUDICATION ============
+\node[gry, right=13mm of m1.east, anchor=west] (s1) {DeLong $\Delta$AUC\\\scriptsize $p=0.33$ · $0.52$};
+\node[gry, below=2.5mm of s1] (s2) {permutation · Wilcoxon\\TOST $\delta=0.02$};
+\node[gry, below=2.5mm of s2] (s3) {MDE @ 80\% power\\\textbf{0.035--0.067}};
+\node[b, below=2.5mm of s3, draw=green!45!black, fill=green!12, text width=26mm]
+     (s4) {\textbf{Verdict}\\no difference\\is measurable};
+\begin{scope}[on background layer]
+\node[panel, fit=(s1)(s2)(s3)(s4)] (P5) {};
+\end{scope}
+\node[hdr, above=1.5mm of P5] {Statistical adjudication};
+
+%============ FLOW ARROWS ============
+\draw[ar] (P1.east) -- (P2.west);
+\draw[ar] (P2.east) -- (P3.west);
+\draw[ar] (P3.east) -- (P4.west);
+\draw[ar] (P4.east) -- (P5.west);
+
+%============ FOOTER NOTE ============
+\node[below=4mm of P3.south, font=\sffamily\scriptsize, text=black!65, align=center]
+  {D5 repaired and re-scored: $\Delta$ROC-AUC $=-0.0001$ ($p=0.93$) --- a real defect, measurably inert};
+\end{tikzpicture}

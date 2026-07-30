@@ -1,0 +1,37 @@
+%% Study backbone — Is Progress on the TOP Benchmark Measurable?
+%% Renders on GitHub (```mermaid fence), mermaid.live, VS Code, Obsidian.
+flowchart TB
+  classDef claim   fill:#fdf2f2,stroke:#c0392b,stroke-width:2px,color:#7b241c;
+  classDef method  fill:#eef4fb,stroke:#2c6fb5,stroke-width:2px,color:#1b4571;
+  classDef finding fill:#f4f6f7,stroke:#5d6d7e,stroke-width:1.5px,color:#212f3d;
+  classDef head    fill:#eafaf1,stroke:#1e8449,stroke-width:2.5px,color:#145a32;
+  classDef note    fill:#fefaf0,stroke:#b7950b,stroke-width:1px,color:#7d6608;
+
+  A["<b>1 · Published claim</b><br/>MEXA-CTP beats HINT on TOP<br/><i>+1.1–3.5% ROC (relative)</i>"]:::claim
+
+  B["<b>2 · The comparison is ill-posed</b><br/>epoch chosen on <i>test</i> · F1 fixed at 0.5<br/>PR-AUC on binarised scores · no trivial baseline<br/>no test of the difference"]:::claim
+
+  C["<b>3 · One shared, corrected harness</b><br/>threshold@validation · ranking on continuous scores<br/>bootstrap CIs · trivial baseline · single evaluator"]:::method
+
+  D["<b>4 · The advantage disappears</b><br/>HINT 0.685 vs MEXA 0.674 · DeLong n.s.<br/>released MEXA checkpoint ≈ chance (0.518)"]:::finding
+
+  E["<b>5 · The mechanisms are inert</b><br/>mode-experts in a plain dict → never trained (0/264)<br/>HINT ablation ladder flat · D5 criteria branch dead"]:::finding
+
+  F["<b>6 · Simple baselines match HINT</b><br/>TabFM 0.668 (zero training) · XGBoost 0.691<br/>ICD-only (val-selected) 0.671 · target-encoding 0.676"]:::finding
+
+  G["<b>7 · A two-column lookup tops everything</b><br/>disease-code + drug history → <b>0.700</b><br/>0.726 on well-supported cells (HINT 0.712 there)"]:::head
+
+  H["<b>8 · Progress is not measurable</b><br/>MDE 0.035–0.067 across phases<br/>every gain in this literature falls below it"]:::head
+
+  A --> B --> C --> D --> E --> F --> G --> H
+
+  D1["<b>Defects fixed</b> D1–D10<br/>D5 repaired &amp; measured: ΔROC −0.0001 (p=0.93)"]:::note
+  N1["<b>Noise budget</b><br/>test-sampling SE 0.018 ← dominant<br/>seed sd: HINT 0.0024 · TabFM 0.0011<br/>MEXA reload 0.023 = defect, not seed"]:::note
+  N2["<b>Why the ceiling</b><br/>feature-set limit: efficacy, enrolment,<br/>design, sponsor absent from TOP<br/>46% of trials share one SMILES"]:::note
+  N3["<b>Self-audit</b><br/>7 of our own findings overturned<br/>incl. our initial seed-noise overestimate"]:::note
+
+  C -.-> D1
+  E -.-> N2
+  F -.-> N2
+  H -.-> N1
+  H -.-> N3

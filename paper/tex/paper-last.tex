@@ -22,6 +22,7 @@
 \usepackage{xcolor}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
 \usepackage{enumitem}
@@ -116,7 +117,7 @@
 \begin{abstract}
 Progress on clinical trial outcome prediction is measured almost entirely against HINT on the TOP
 benchmark. We ask whether that progress is real and find it is not measurable. Using a shared
-evaluation harness that fixes ten code-level defects (Table~\ref{tab:defects})---including a
+evaluation harness that fixes ten code-level defects---including a
 mode-experts interaction mechanism that, stored in a plain Python \texttt{dict}, never entered the
 optimizer and was never trained, and an empty embedding cache that silently zeroes HINT's
 eligibility-criteria modality (which, once regenerated, is measurably inert)---we show the reported
@@ -171,6 +172,89 @@ This paper asks a simple question: is the reported progress on the TOP benchmark
   \item The observation that metric artefacts systematically inject unpredictable noise into model rankings (Section~\ref{sec:metricweak}).
   \item Seven of our own directional findings that did not survive replication (Section~\ref{sec:wrong})---demonstrating that effect sizes on this benchmark lie below its sampling-noise floor.
 \end{enumerate}
+
+\begin{figure*}[t]\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\sffamily,
+  panel/.style={rounded corners=7pt, draw=blue!30, line width=1pt, fill=blue!1, inner sep=10pt},
+  hdr/.style={font=\sffamily\bfseries\small, text=black},
+  b/.style={rounded corners=3pt, draw=black!50, fill=black!4, align=center,
+            inner xsep=5pt, inner ysep=4pt, font=\sffamily\scriptsize, text width=30mm},
+  red/.style={b, draw=red!55, fill=red!7},
+  blu/.style={b, draw=blue!55, fill=blue!8},
+  grn/.style={b, draw=green!45!black, fill=green!10},
+  yel/.style={b, draw=orange!70!black, fill=orange!12},
+  gry/.style={b, draw=black!45, fill=black!6, text width=26mm},
+  dsh/.style={b, dashed, fill=white},
+  ar/.style={-{Stealth[length=3.2mm,width=2.4mm]}, line width=1.1pt, draw=blue!60!black}]
+\node[red] (r1) {\textbf{HINT} repo\\\scriptsize commit \texttt{8dc0497}};
+\node[red, below=3mm of r1] (r2) {\textbf{MEXA-CTP} repo\\\scriptsize commit \texttt{b898dbb}};
+\node[dsh, below=3mm of r2] (r3) {TOP benchmark\\\scriptsize temporal split, 2014};
+\begin{scope}[on background layer]
+\node[panel, fit=(r1)(r2)(r3)] (P1) {};
+\end{scope}
+\node[hdr, above=1.5mm of P1] {Inputs};
+\node[blu, right=13mm of r1.east, anchor=west] (d1) {\textbf{D1} mechanism in a\\plain \texttt{dict} $\Rightarrow$ 0/264 trained};
+\node[blu, below=2.5mm of d1] (d3) {\textbf{D3--D4} PR-AUC on\\binarised; F1 @ 0.5};
+\node[blu, below=2.5mm of d3] (d5) {\textbf{D5} empty criteria\\cache $\Rightarrow$ zero vector};
+\node[dsh, below=2.5mm of d5, text width=30mm] (d10) {D2, D6--D10\\\scriptsize runtime \& reproducibility};
+\begin{scope}[on background layer]
+\node[panel, fit=(d1)(d3)(d5)(d10)] (P2) {};
+\end{scope}
+\node[hdr, above=1.5mm of P2] {Forensic audit};
+\node[grn, right=13mm of d1.east, anchor=west, text width=32mm] (h1) {threshold @ \emph{validation}};
+\node[grn, below=2.5mm of h1, text width=32mm] (h2) {ranking on \emph{continuous} scores};
+\node[grn, below=2.5mm of h2, text width=32mm] (h3) {bootstrap 95\% CIs};
+\node[grn, below=2.5mm of h3, text width=32mm] (h4) {trivial all-positive baseline};
+\node[dsh, below=2.5mm of h4, text width=32mm] (h5) {one evaluator, all models};
+\begin{scope}[on background layer]
+\node[panel, fit=(h1)(h2)(h3)(h4)(h5)] (P3) {};
+\end{scope}
+\node[hdr, above=1.5mm of P3] {Shared corrected harness};
+\node[yel, right=13mm of h1.east, anchor=west, text width=34mm] (m1) {\textbf{Deep} \quad HINT 0.685\\MEXA-CTP 0.674};
+\node[yel, below=2.5mm of m1, text width=34mm] (m2) {\textbf{Tuned GBDT}\\XGB 0.691 $\cdot$ Cat 0.680};
+\node[yel, below=2.5mm of m2, text width=34mm] (m3) {\textbf{Zero-training}\\TabFM 0.668 $\cdot$ TabPFN 0.647};
+\node[grn, below=2.5mm of m3, text width=34mm] (m4) {\textbf{Base-rate lookup}\\disease code + drug \textbf{0.700}};
+\begin{scope}[on background layer]
+\node[panel, fit=(m1)(m2)(m3)(m4)] (P4) {};
+\end{scope}
+\node[hdr, above=1.5mm of P4] {Model panel (phase III)};
+\node[gry, right=13mm of m1.east, anchor=west] (s1) {DeLong $\Delta$AUC\\\scriptsize $p=0.33$ $\cdot$ $0.52$};
+\node[gry, below=2.5mm of s1] (s2) {permutation $\cdot$ Wilcoxon\\TOST $\delta=0.02$};
+\node[gry, below=2.5mm of s2] (s3) {MDE @ 80\% power\\\textbf{0.035--0.067}};
+\node[b, below=2.5mm of s3, draw=green!45!black, fill=green!12, text width=26mm]
+     (s4) {\textbf{Verdict}\\no difference\\is measurable};
+\begin{scope}[on background layer]
+\node[panel, fit=(s1)(s2)(s3)(s4)] (P5) {};
+\end{scope}
+\node[hdr, above=1.5mm of P5] {Statistical adjudication};
+\draw[ar] (P1.east) -- (P2.west);
+\draw[ar] (P2.east) -- (P3.west);
+\draw[ar] (P3.east) -- (P4.west);
+\draw[ar] (P4.east) -- (P5.west);
+\node[below=4mm of P3.south, font=\sffamily\scriptsize, text=black!65, align=center]
+  {D5 repaired and re-scored: $\Delta$ROC-AUC $=-0.0001$ ($p=0.93$) --- a real defect, measurably inert};
+\end{tikzpicture}}
+\caption{Overview of the study. The two public implementations \citep{fu2022hint,zhang2025mexactp}
+and the TOP benchmark enter a forensic audit that catalogues ten code-level defects; both models
+are then re-evaluated under a single corrected harness, compared against a panel of deep, tuned
+tabular, zero-training \citep{hollmann2025tabpfn,google2026tabfm} and historical base-rate
+baselines, and adjudicated with tests of the \emph{difference} rather than overlapping intervals.
+All values are phase-III test ROC-AUC.}
+\label{fig:pipeline}
+\end{figure*}
+
+Figure~\ref{fig:pipeline} summarises the study end to end. Reading it left to right also states our
+methodological position: we begin from the released artefacts rather than from reported numbers,
+because the defects that matter here are visible only in code --- the same class of reproducibility
+hazard that \citet{yang2026large} flag as the dominant vulnerability of benchmark-level (Level-2)
+evidence, and that \citet{degrave2021ai} and \citet{geirhos2020shortcut} document in adjacent
+clinical and vision settings. The harness stage exists because a defect in a \emph{reference}
+model's evaluation propagates into every comparison drawn against it, and HINT is the reference for
+this literature \citep{zhang2025mexactp,chen2024uq,wang2023spot}. The final stage is where our
+verdict is decided: rather than reading winners off per-model confidence bands, we test the paired
+difference and report a minimum detectable effect, the analogue of the pre-specification and
+power discipline that clinical evaluation requires \citep{ylescupidez2023standardized,mentz2021clinical}.
 \subsection{Related work}
 \paragraph{The two models we re-evaluate.} HINT \citep{fu2022hint} relies on a hierarchical interaction network. It processes each trial through three parallel modalities. A message-passing network over SMILES graphs captures drug molecules. An ontology-aware ICD embedding handles target diseases. BioBERT reads the eligibility criteria. HINT then pushes these embeddings through pharmacology-knowledge modules---specifically, an ADMET block and a pharmacokinetic aggregator built from Highway networks. It fuses them in an interaction module before propagating the result through a dynamic attentive graph convolutional network, where the nodes represent the trial components. Its standard ablations---\texttt{Only\_Molecule}, \texttt{Only\_Disease}, \texttt{Interaction}, and \texttt{HINT\_nograph} (the full model with the graph removed)---let one isolate exactly what each modality contributes. We rely on these heavily in Section~\ref{sec:ablation}.
 MEXA-CTP \citep{zhang2025mexactp} abandons this hand-built interaction graph entirely. Instead, it introduces a mode-experts design. Each modality projects and passes through its own self-attention ``expert.'' Learned routers then gate the resulting tokens, penalized by a Cauchy sparsity loss. Cross-attention blocks exchange information between every ordered pair of modes. A contrastive loss aligns these paired cross-attended representations. Finally, a compensation self-attention block pools them, and a linear head predicts the outcome. Contrary to what one might assume, the two models do \emph{not} share encoders (Table~\ref{tab:encoders}): HINT encodes molecules with a D-MPNN and diseases with the GRAM ICD ontology, whereas MEXA-CTP as published uses a DeepChem molecular featuriser and the \texttt{icdcodex} disease embedding, and our own retraining standardises the front-end differently again (MACAW molecule vectors, \texttt{icd2vec}); only the BioBERT criteria encoder is common to all three, and even that differs in granularity (paragraph- vs statement-level). What the two models genuinely share is the TOP benchmark and task; their headline architectural difference is how they model cross-modal interaction --- a hand-built graph in HINT versus routed cross-attention in MEXA-CTP --- which our audit isolates. Because the encoders are not held identical, the comparison also carries an encoder confound; we note it here and in the limitations, but since no between-model difference is detectable in the first place (Section~\ref{sec:power}), differing encoders cannot manufacture a gap that does not exist.
