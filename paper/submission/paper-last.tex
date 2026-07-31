@@ -104,69 +104,41 @@ clinical trial outcome prediction \sep benchmark evaluation \sep reproducibility
 % =====================================================================
 \section{Introduction}
 \label{sec:intro}
-Predicting whether a clinical trial will succeed before it starts is a valuable goal.
-The release of the TOP benchmark with the HINT model \citep{fu2022hint} turned that goal into a
-standard machine-learning task.
-TOP (Trial Outcome Prediction) is a temporally split dataset of drug trials with binary success
-labels.
-HINT (Hierarchical Interaction Network) is a multimodal deep model that fuses molecule, disease, and eligibility-criteria inputs to
-predict those labels.
-New methods are now judged almost exclusively by whether they beat HINT on TOP.
+Predicting a clinical trial's outcome before it begins is a valuable goal, and the release of the
+TOP benchmark alongside the HINT model \citep{fu2022hint} turned that goal into a standard machine
+learning task. Progress in this domain is now measured almost exclusively by comparison against
+HINT.
 
-Most reported gains are retrospective scores on this one benchmark.
-That raises a practical question: what do those scores license  (a fair model comparison, or a
-claim about real-world performance?) .
-The following study will examine how recent work grades AI evidence in the context of drug discovery. The evidence-readiness framework developed by \citet{yang2026large} is adopted for the purposes of this study.
-They ranks such evidence on six tiers, from early proof-of-concept (Level~1) to regulatory-grade
-use (Level~6).
-We adopt it for two reasons.
-First, it draws a clear line between ``better on a fixed benchmark'' and ``ready for clinical
-decisions.''
-Second, It states the requirements for a credible benchmark study: a strict holdout, reproducible code and data, and a transparent evaluation protocol.
-On that scale, evaluating a model on TOP is Level~2.
-Their study shows that claims about real-world performance require Level~3: prospective or external validation.
-It is regrettable to note that none of the results in this literature reach Level~3.
+The literature on trial outcome prediction has grown quickly, but most reported gains rest on a
+single foundation: retrospective metrics computed on this one benchmark. To judge what such gains
+mean, we apply the evidence-readiness framework of \citet{yang2026large}. It defines six tiers for
+AI evidence in drug discovery, from proof-of-concept demonstrations (Level~1) to regulatory-grade
+use (Level~6). Evaluating a model on a fixed benchmark such as TOP sits at Level~2, where
+credibility rests entirely on strict holdout discipline, reproducibility and transparent
+evaluation. Level~3 --- prospective or externally validated evidence --- is what would license
+claims about real-world performance, and no result in this literature reaches it.
 
-\citet{yang2026large} warn against treating benchmark scores as real-world validity, and name
-poor reproducibility and flawed evaluation pipelines as the main risks at Level~2.
-This paper documents code-level instances of those risks.
-MEXA-CTP's released code selects its best epoch on the \emph{test} set, although the paper
-describes validation-based selection (a discrepancy between code and paper, not a stated
-design choice).
-HINT is meant to read each trial's eligibility-criteria text through a BioBERT embedding.
-In the released code those embeddings are loaded from a cache file
-(\texttt{sentence2embedding.pkl}); if a sentence is missing, the code falls back to an all-zero
-vector.
-The shipped cache is empty, so that fallback fires for every trial: the criteria input is
-silently replaced by zeros and never contributes to the prediction (defect~D5,
-Table~\ref{tab:defects}).
-These are Level-2 measurements presented with Level-3 confidence.
+We use that framework as a practical audit tool. \citet{yang2026large} warn specifically against
+reading benchmark scores as real-world validity, and name poor reproducibility and flawed
+evaluation pipelines as the main vulnerabilities. This paper documents the code-level counterparts
+of exactly those vulnerabilities. MEXA-CTP's released code selects its best epoch on the
+\emph{test} set, although its paper describes validation-based selection; this is a discrepancy
+between code and paper, not a stated design choice. HINT ships an empty embedding cache that
+silently replaces an entire input modality with a zero vector (defect~D5,
+Table~\ref{tab:defects}). These are Level-2 results presented with the confidence of Level-3
+evidence. We therefore test empirically which validation gates the published comparisons pass,
+and which they fail.
 
-Taken together, they lead us to a single question: is the reported progress on TOP even
-measurable?
-To answer it, we do not start from the published tables.
-We start from the released code and data, catalogue the defects that make the HINT/MEXA-CTP
-comparison ill-posed, repair them under one shared evaluation harness, and re-score both models
-under the same protocol.
-We then stress-test the result with simple baselines, ask how large an effect TOP can resolve,
-and put our own directional findings through the same replication discipline.
-The steps below are that plan:
+This paper asks one question: is the reported progress on the TOP benchmark real? We find that it
+is not even measurable. The reasons are mundane. They are defects in evaluation code, selection on
+the test set, missing baselines and single-run comparisons. Our contributions are:
 \begin{enumerate}
-  \item A shared evaluation harness that enforces one protocol and makes the HINT/MEXA-CTP
-        comparison well-posed (Section~\ref{sec:methods}).
-  \item Ten code-level defects with before/after quantification (Table~\ref{tab:defects}),
-        including two that concealed each other and an empty embedding cache that disables
-        HINT's eligibility-criteria modality (repaired and re-scored: $\Delta$ROC-AUC $=-0.0001$).
-  \item A corrected comparison across all three trial phases (Section~\ref{sec:results}), in which
-        the published MEXA-CTP advantage disappears under a fair protocol.
-  \item A baseline stress test (Section~\ref{sec:tabfm}): a zero-training tabular foundation model
-        and a validation-selected model$\times$feature grid both match HINT in every phase, with
-        predictive signal carried by disease codes rather than molecular structure.
-  \item Evidence that metric defects do not only shift scores but can \emph{reorder} the models
-        being compared (Section~\ref{sec:metricweak}).
-  \item Seven of our own directional findings put through replication --- six overturned, one
-        narrowed (Section~\ref{sec:wrong}) --- showing that effect sizes on TOP lie below its
-        sampling-noise floor.
+  \item A shared evaluation harness that enforces strict protocol and makes the HINT/MEXA-CTP comparison well-posed (Section~\ref{sec:methods}).
+  \item Ten code-level defects catalogued with before/after quantification (Table~\ref{tab:defects}), including two that actively concealed each other and one -- an empty embedding cache -- that silently disables HINT's eligibility-criteria modality (which, once repaired and re-scored, we measure to be inert: $\Delta$ROC-AUC $=-0.0001$).
+  \item A corrected comparison across all three trial phases (Section~\ref{sec:results}), showing that the published advantage completely disappears under a fair protocol.
+  \item A baseline-side stress test (Section~\ref{sec:tabfm}): a zero-training tabular foundation model and a validation-selected model$\times$feature grid both match HINT in every phase, with all predictive signal traceable to disease codes and none to molecular structure.
+  \item Evidence that the benchmark's metric defects do not merely shift scores but \emph{reorder} the models being compared (Section~\ref{sec:metricweak}).
+  \item Seven of our own directional findings put through replication---six overturned, one narrowed (Section~\ref{sec:wrong})---demonstrating that effect sizes on this benchmark lie below its sampling-noise floor.
 \end{enumerate}
 
 \begin{figure*}[t]\centering
@@ -280,211 +252,73 @@ The steps below are that plan:
    \textcolor{blue!60}{\rule[0.4ex]{4mm}{0.7pt}} evaluated \qquad
    D5 repaired \& re-scored: $\Delta$ROC-AUC $=-0.0001$ ($p=0.93$) --- measurably inert};
 \end{tikzpicture}}
-\caption{Study overview. The released HINT and MEXA-CTP implementations
-\citep{fu2022hint,zhang2025mexactp} and the TOP benchmark enter a forensic audit of ten
-code-level defects. Both models are then re-scored under one corrected harness, compared with
-deep, tuned tabular, zero-training \citep{hollmann2025tabpfn,google2026tabfm}, and historical
-base-rate baselines, and adjudicated with tests of the paired \emph{difference} rather than
-overlapping confidence intervals. All values are phase-III test ROC-AUC.}
+\caption{Overview of the study. The two public implementations \citep{fu2022hint,zhang2025mexactp}
+and the TOP benchmark enter a forensic audit that catalogues ten code-level defects; both models
+are then re-evaluated under a single corrected harness, compared against a panel of deep, tuned
+tabular, zero-training \citep{hollmann2025tabpfn,google2026tabfm} and historical base-rate
+baselines, and adjudicated with tests of the \emph{difference} rather than overlapping intervals.
+All values are phase-III test ROC-AUC.}
 \label{fig:pipeline}
 \end{figure*}
 
-Figure~\ref{fig:pipeline} lays out that plan end to end: the released HINT and MEXA-CTP
-artefacts, the forensic audit of defects D1--D10, the shared corrected harness, the phase-III
-model panel (deep, tabular, and base-rate baselines), and the final adjudication.
-The reader can follow those stages left to right in the figure.
-We begin with the released artefacts, not the published tables.
-The defects that matter show up only in code.
-That is the kind of reproducibility hazard \citet{yang2026large} flag for Level-2 evidence.
-\citet{degrave2021ai} and \citet{geirhos2020shortcut} document the same class of failure in
-related clinical and vision settings.
-A shared harness is essential because HINT is the reference baseline for this literature
-\citep{zhang2025mexactp,chen2024uq,wang2023spot}, so a flaw in its evaluation propagates into
-every later comparison.
-At the end we adjudicate the comparison.
-We do not read winners from overlapping confidence bands.
-Instead, we test the paired difference and report a minimum detectable effect.
-That is the pre-specification and power discipline expected in clinical evaluation
-\citep{ylescupidez2023standardized,mentz2021clinical}.
-
+Figure~\ref{fig:pipeline} summarises the study end to end. Reading it left to right also states our
+methodological position: we begin from the released artefacts rather than from reported numbers,
+because the defects that matter here are visible only in code --- the same class of reproducibility
+hazard that \citet{yang2026large} flag as the dominant vulnerability of benchmark-level (Level-2)
+evidence, and that \citet{degrave2021ai} and \citet{geirhos2020shortcut} document in adjacent
+clinical and vision settings. The harness stage exists because a defect in a \emph{reference}
+model's evaluation propagates into every comparison drawn against it, and HINT is the reference for
+this literature \citep{zhang2025mexactp,chen2024uq,wang2023spot}. The final stage is where our
+verdict is decided: rather than reading winners off per-model confidence bands, we test the paired
+difference and report a minimum detectable effect, the analogue of the pre-specification and
+power discipline that clinical evaluation requires \citep{ylescupidez2023standardized,mentz2021clinical}.
 \subsection{Related work}
-\paragraph{The two models we re-evaluate.}
-HINT \citep{fu2022hint} is a hierarchical interaction network with three parallel modalities:
-a message-passing network over SMILES graphs for drugs, an ontology-aware ICD embedding for
-diseases, and BioBERT for eligibility criteria.
-These embeddings pass through pharmacology modules (an ADMET block and a pharmacokinetic
-Highway aggregator), then through an interaction module and a dynamic attentive graph
-convolutional network over trial components.
-Standard ablations --- \texttt{Only\_Molecule}, \texttt{Only\_Disease}, \texttt{Interaction}, and
-\texttt{HINT\_nograph} --- isolate each modality; we use them in Section~\ref{sec:ablation}.
-
-MEXA-CTP \citep{zhang2025mexactp} replaces the hand-built interaction graph with a mode-experts
-design.
-Each modality has its own self-attention expert; learned routers gate tokens under a Cauchy
-sparsity loss; cross-attention exchanges information between mode pairs; a contrastive loss
-aligns the paired representations; and a compensation self-attention block feeds a linear head.
-The two models do \emph{not} share encoders (Table~\ref{tab:encoders}).
-HINT uses a D-MPNN and GRAM; published MEXA-CTP uses DeepChem and \texttt{icdcodex}; our retrain
-uses MACAW and \texttt{icd2vec}.
-Only BioBERT is shared, and even that differs in granularity (paragraph vs.\ statement).
-What they share is the TOP task; the architectural contrast is hand-built graph versus routed
-cross-attention.
-The encoder difference is a confound we flag in the limitations.
-Because no between-model difference is detectable under our protocol (Section~\ref{sec:power}),
-differing encoders cannot create a gap that is not there.
-
-\paragraph{Mixture-of-experts and the missing isolation test.}
-Mixture-of-experts (MoE) designs are often motivated as a way to model distinct trial modalities
-through specialised subnetworks.
-A claim that the experts contribute must be backed by an isolation test.
-In an adjacent setting, a glioblastoma MoE survival model collapsed the MoE to a single expert and
-reported a drop from AUC~$0.839$ to $0.806$ ($-3.9\%$) \citep{reyes2026therapeutic} --- a
-measurable contribution.
-Published MoE claims for trial-outcome prediction provide no such test.
-Our audit shows why: the cross-attention, self-attention, and router layers were stored in a plain
-Python \texttt{dict} rather than an \texttt{nn.ModuleDict}, so PyTorch never registered them
-(Section~\ref{sec:defects}).
-They never entered the optimizer and never appeared in checkpoints, including in the original
-authors' runs.
-We repair the implementation and report the first evaluation of the trained mechanism.
-
-\paragraph{Benchmark lineage.}
-TOP was curated with HINT \citep{fu2022hint}.
-Its binary labels are not algorithmic: the HINT paper states that ``[t]rial outcome labels
-(binary labels) are extracted through manual curation by an internal IQVIA team,'' from
-ClinicalTrials.gov XML, with a temporal split at 1~January~2014 \citep{fu2022hint}.
-COMPOSE \citep{gao2020compose} is a \emph{baseline} HINT compares against, not the source of the
-labels.
-``Success'' in TOP is a hand-curated judgement of whether the trial met its endpoint or the drug
-progressed, across heterogeneous trial types --- not completion alone and not a single regulatory
-event.
-That label is noisy; part of the modest $\sim$0.685 phase-III ceiling observed across papers is
-likely label noise rather than model weakness, which is a reason to treat \emph{small} reported
-gains with caution.
-HINT is now both the reference baseline \citep{zhang2025mexactp} and the substrate for later
-methods; UQ-HINT \citep{chen2024uq}, for example, adds selective classification on HINT outputs
-and inherits its evaluation code.
-
-\paragraph{HINT's successor literature.}
-Work on TOP extends beyond MEXA-CTP.
-SPOT \citep{wang2023spot} adds topic clustering and meta-learning over the same labels;
-Trial2Vec \citep{wang2022trial2vec} learns trial-document embeddings for downstream outcome
-tasks; TrialBench \citep{chen2025trialbench} packages $23$ ClinicalTrials.gov-derived datasets
-across eight tasks, including approval prediction.
-Each inherits the label provenance and small per-phase test sizes that
-Sections~\ref{sec:dataquality} and~\ref{sec:power} show limit what is measurable.
-A shared, power-aware protocol therefore matters for successor benchmarks as well as for HINT and
-MEXA-CTP.
-
-\paragraph{Is the molecular modality necessary?}
-LINT \citep{gao2024lint} predicts trial approval from text alone, discarding the molecular graph.
-In Section~\ref{sec:ablation} we find the same pattern from the ablation side: HINT's drug branch
-alone is near chance, while its disease branch alone matches the full model.
-Structural molecular signal adds negligible value on TOP.
-
-\paragraph{Tabular foundation models as a baseline.}
-Tabular foundation models predict a test row from training rows as in-context examples, with no
-gradient training at inference \citep{hollmann2025tabpfn,google2026tabfm}.
-Trial metadata, disease codes, and molecular descriptors are naturally tabular, so such a model
-is a strong, assumption-light baseline for TOP: it uses the same information HINT uses, minus the
-graph, at zero training cost.
-We include it in Section~\ref{sec:tabfm} as part of a broader tabular panel.
-
-\paragraph{Accuracy versus benefit.}
-Even a correctly measured gain may not help patients.
-In the ORACLE trial \citep{fritz2024effect}, clinicians agreed with a model more often, but their
-accuracy did not improve.
-\citet{jayakumar2025shared} tested whether an AI decision aid improved decision quality in a
-randomised trial.
-Our claim sits one step earlier: before asking whether a gain helps anyone, we must show that the
-gain is measurable.
-
-\paragraph{Metric discipline in clinical statistics.}
-Clinical trials require pre-specified outcomes and adjustment for known covariates
-\citep{ylescupidez2023standardized}.
-Under that discipline, classical models often remain competitive \citep{mentz2021clinical}.
-Our baseline results (Section~\ref{sec:baselines}) echo that pattern.
-In machine learning, fixing free choices such as decision thresholds on validation is the analogue
-of clinical pre-specification; we enforce it here.
+\paragraph{The two models we re-evaluate.} HINT \citep{fu2022hint} relies on a hierarchical interaction network. It processes each trial through three parallel modalities. A message-passing network over SMILES graphs captures drug molecules. An ontology-aware ICD embedding handles target diseases. BioBERT reads the eligibility criteria. HINT then pushes these embeddings through pharmacology-knowledge modules---specifically, an ADMET block and a pharmacokinetic aggregator built from Highway networks. It fuses them in an interaction module before propagating the result through a dynamic attentive graph convolutional network, where the nodes represent the trial components. Its standard ablations---\texttt{Only\_Molecule}, \texttt{Only\_Disease}, \texttt{Interaction}, and \texttt{HINT\_nograph} (the full model with the graph removed)---let one isolate exactly what each modality contributes. We rely on these heavily in Section~\ref{sec:ablation}.
+MEXA-CTP \citep{zhang2025mexactp} abandons this hand-built interaction graph entirely. Instead, it introduces a mode-experts design. Each modality projects and passes through its own self-attention ``expert.'' Learned routers then gate the resulting tokens, penalized by a Cauchy sparsity loss. Cross-attention blocks exchange information between every ordered pair of modes. A contrastive loss aligns these paired cross-attended representations. Finally, a compensation self-attention block pools them, and a linear head predicts the outcome. Contrary to what one might assume, the two models do \emph{not} share encoders (Table~\ref{tab:encoders}): HINT encodes molecules with a D-MPNN and diseases with the GRAM ICD ontology, whereas MEXA-CTP as published uses a DeepChem molecular featuriser and the \texttt{icdcodex} disease embedding, and our own retraining standardises the front-end differently again (MACAW molecule vectors, \texttt{icd2vec}); only the BioBERT criteria encoder is common to all three, and even that differs in granularity (paragraph- vs statement-level). What the two models genuinely share is the TOP benchmark and task; their headline architectural difference is how they model cross-modal interaction --- a hand-built graph in HINT versus routed cross-attention in MEXA-CTP --- which our audit isolates. Because the encoders are not held identical, the comparison also carries an encoder confound; we note it here and in the limitations, but since no between-model difference is detectable in the first place (Section~\ref{sec:power}), differing encoders cannot manufacture a gap that does not exist.
+\paragraph{Mixture-of-experts and the missing isolation test.} Mixture-of-experts (MoE) architectures have gained prominence here on the promise of modeling distinct trial modalities (molecule, disease, protocol) through specialized subnetworks. However, if a paper claims its experts genuinely learn discriminative, contributing representations, it must explicitly isolate their contribution. In an adjacent domain, a glioblastoma MoE survival model (three experts and a gating network) did exactly this. The authors collapsed their MoE design into a single-expert network and reported the discrimination drop from AUC $0.839$ to $0.806$ ($-3.9\%$) \citep{reyes2026therapeutic}. That is a measurable architectural contribution. Models advancing MoE claims for clinical trial outcome prediction provide no such isolation test. Our forensic audit reveals exactly why: the code made it impossible. The developers stored the cross-attention, self-attention, and router layers in a plain Python \texttt{dict} rather than an \texttt{nn.ModuleDict}. Consequently, PyTorch never registered these submodules. They never entered the optimizer. They were never written to the \texttt{state\_dict} checkpoints (Section~\ref{sec:defects}). The mechanism never trained, including in the original authors' own runs. Here, we fix the implementation and report the first actual evaluation of this mechanism.
+\paragraph{Benchmark lineage.} The TOP benchmark was curated alongside HINT \citep{fu2022hint}. Its binary outcome labels are not algorithmic: the HINT paper states verbatim that ``[t]rial outcome labels (binary labels) are extracted through manual curation by an internal IQVIA team,'' with the raw trial variables parsed from ClinicalTrials.gov XML and the sets time-split at January~1, 2014 \citep{fu2022hint}. We flag this because it is easy to misattribute: COMPOSE \citep{gao2020compose}, a cross-modal pseudo-siamese patient--trial matching network, is a \emph{baseline} HINT compares against, not the source of the labels --- a distinction we verified against the source paper. It is worth stating plainly what the label means, because it bounds how high any ROC-AUC can go. ``Success'' in TOP is not trial completion and not a single clean regulatory event: it is a hand-curated IQVIA determination of whether the trial met its endpoint / the drug progressed, aggregated across heterogeneous trial types. Such a label is inherently noisy --- human-curated, and part of the modest $0.685$ ceiling we and everyone else observe is almost certainly label noise rather than model weakness --- a reason to be sceptical of \emph{small} reported gains, and an argument that the benchmark's own labels, not just its models, deserve audit. Since its release, HINT has become both the reference baseline \citep{zhang2025mexactp} and the base on which new methods are built. For example, UQ-HINT \citep{chen2024uq} adds selective classification on top of HINT's outputs, and therefore inherits its exact evaluation code.
+\paragraph{HINT's successor literature.} The line of work built on TOP extends well beyond
+MEXA-CTP, and our audit of the benchmark's labels, split and metrics bears on all of it. SPOT
+\citep{wang2023spot} clusters trials into topics and adds a meta-learning module over the same
+labels; Trial2Vec \citep{wang2022trial2vec} learns self-supervised trial-document embeddings
+used downstream for outcome tasks; and TrialBench \citep{chen2025trialbench} --- from the HINT
+authors --- packages $23$ ClinicalTrials.gov-derived datasets across eight tasks, including
+trial-approval prediction, in the same tabular/multi-modal form we examine here. Each inherits
+the label provenance and small per-phase test sizes that Sections~\ref{sec:dataquality}
+and~\ref{sec:power} show cap what is measurable; a shared, power-aware evaluation protocol is
+therefore relevant to the successor benchmarks, not only to HINT and MEXA-CTP.
+\paragraph{Is the molecular modality necessary?} LINT \citep{gao2024lint} predicts trial approval strictly from text. It encodes the trial description and eligibility text using a BioBERT-style language model over a GRAM disease-ontology representation, discarding the molecular graph entirely. In Section~\ref{sec:ablation}, we show that HINT's drug branch alone performs near chance, while its disease branch alone matches the full model. This provides independent, ablation-based confirmation of what LINT demonstrates from the architecture side: the structural molecular signal adds negligible value.
+\paragraph{Tabular foundation models as a baseline.} A recent line of work trains a single transformer to perform supervised learning on arbitrary tables by in-context learning: it predicts a test row after being shown the training rows as context, with no gradient training at inference \citep{hollmann2025tabpfn,google2026tabfm}. Because trial metadata, disease-ontology codes, and molecular physicochemical descriptors are all naturally tabular, such a model is a strong, assumption-light baseline for the TOP task---it consumes the same information HINT does, minus the graph structure, at zero training cost. We use it in Section~\ref{sec:tabfm} as the most modern member of a broad tabular-baseline panel.
+\paragraph{Accuracy versus benefit.} Even a correctly measured gain might not help real patients. The ORACLE trial \citep{fritz2024effect} showed clinicians a model's predictions. The clinicians agreed with the model more often, but their actual \emph{accuracy} did not improve. The authors blamed data drift, concept drift, and automation bias. Similarly, \citet{jayakumar2025shared} deployed a model trained on 700{,}000 patients into a randomized trial simply to test if decision quality improved in practice. Our claim operates one step prior in that chain: before we ask if a gain helps anyone, we must first prove the gain is measurable.
+\paragraph{Metric discipline in clinical statistics.} Clinical trials require researchers to pre-specify their outcome metrics and adjust for known baseline covariates \citep{ylescupidez2023standardized}. When evaluated strictly, classical statistical models remain highly competitive \citep{mentz2021clinical}. Our findings in Section~\ref{sec:baselines} mirror this reality perfectly. In machine learning, locking down every free choice (like decision thresholds) on a validation set is the exact analogue of clinical pre-specification. We enforce that discipline here.
 % =====================================================================
 \section{Methods}
 \label{sec:methods}
 \subsection{What makes the published comparison ill-posed}
-The published comparison evaluates the two models under different rules, and several of those
-rules are incorrect.
-Five problems make the comparison ill-posed:
+The published comparison measures the two models under completely different rules. Worse, several of those rules are simply wrong. Five specific problems compound to invalidate the results:
 \begin{enumerate}[leftmargin=1.4em,itemsep=1pt,topsep=2pt]
-\item \textbf{Different model-selection criteria (code versus paper).}
-The MEXA-CTP paper states that the best epoch is chosen on validation, but the released code
-selects it on \emph{test} ROC-AUC.
-HINT selects on validation, as described.
-We treat the MEXA-CTP case as a mismatch between protocol and implementation --- not as a stated
-design --- because the implementation produced the reported numbers.
-Selecting a checkpoint on the scoring set leaks test labels and inflates performance; the models
-are then not even selected by the same procedure.
-\item \textbf{Fixed $0.5$ threshold.}
-Both models report F1 at a hard-coded cutoff of $0.5$.
-The positive rate ranges from $0.55$ (phase~I) to $0.75$ (phase~III), so a fixed threshold makes
-F1 track the class prior more than ranking quality.
-Recalibrating the threshold on validation alone raises HINT's phase~I F1 by $+0.119$
-(Section~\ref{sec:results}).
-\item \textbf{PR-AUC on binarised predictions.}
-HINT computes PR-AUC after thresholding scores to $0/1$, not on continuous scores.
-This understates PR-AUC by $0.020$--$0.081$ and can \emph{reorder} model rankings
-(Section~\ref{sec:metricweak}).
-\item \textbf{No trivial baseline.}
-Neither paper reports an all-positive reference.
-Without it, absolute F1 is hard to interpret: an F1 of $0.86$ on a set with $0.75$ positives
-matches guessing that every trial succeeds.
-\item \textbf{Wrong uncertainty, and no test of the difference.}
-MEXA-CTP reports a $\pm$ that is a \emph{test-resampling} bootstrap sd over $10$ draws from a
-\emph{single} model --- not training-seed variance, and not a paired test of the
-between-model difference.
-Reading a winner from non-overlapping per-model bands is the error corrected in
-Section~\ref{sec:power}: bands can overlap while the paired difference is significant, and vice
-versa.
-On TOP, the sampling noise on a between-model difference (DeLong SE $\approx0.018$) is comparable
-to or larger than the $\sim$0.01--$0.03$ effects claimed, so the missing difference test matters
-most.
+\item \textbf{Different model-selection criteria (a code-versus-paper discrepancy).} The MEXA-CTP paper states that the best training epoch is chosen on validation, but the released code selects it on the \emph{test} ROC-AUC. HINT selects its epoch on \emph{validation}, consistent with its description. We flag the MEXA-CTP case specifically as a mismatch between the published protocol and the shipped implementation --- not as a stated design choice --- because it is the implementation that produced the reported numbers. Choosing a checkpoint on the same set used for final scoring leaks the test labels into training and inflates the reported performance; the two models are then not even selected by the same procedural logic, let alone the same data splits.
+\item \textbf{Fixed $0.5$ threshold.} Both models report their F1 scores using a hard-coded $0.5$ decision cutoff. However, the benchmark's positive rate fluctuates wildly---from $0.55$ in phase~I up to $0.75$ in phase~III. Under these conditions, a fixed threshold forces F1 to measure the underlying class prior rather than the actual ranking quality. To prove this, we simply recalibrated the threshold on validation data. That one change alone boosted HINT's phase~I F1 score by $+0.119$ (Section~\ref{sec:results}).
+\item \textbf{PR-AUC on binarised predictions.} HINT computes its PR-AUC only after thresholding the raw predictions into strict $0/1$ labels, instead of using the continuous scores. This calculation error understates the true PR-AUC by anywhere from $0.020$ to $0.081$. Far more dangerously, it completely \emph{reorders} the performance rankings of the models (Section~\ref{sec:metricweak}).
+\item \textbf{No trivial baseline.} Neither paper reports an all-positive reference score. Without this trivial baseline, the absolute F1 numbers become meaningless. For instance, achieving an F1 of $0.86$ sounds impressive on paper. Yet, on a test set with $0.75$ positive labels, simply guessing ``every trial succeeds'' yields the exact same score.
+\item \textbf{The wrong kind of uncertainty, and no test of the difference.} MEXA-CTP does report a $\pm$ in its tables, but it is a \emph{test-resampling} bootstrap sd over $10$ samples of a \emph{single} model --- not the two quantities that decide whether a gain is real: the \emph{training-seed} variance (re-running the same model from a different seed) and a paired \emph{test of the difference} between two models. Reporting a per-model bootstrap band and then reading off a winner from non-overlapping bands is exactly the error Section~\ref{sec:power} corrects: two bands can overlap while the paired difference is significant, and vice versa. On a benchmark where the sampling noise on a between-model \emph{difference} (DeLong SE $\approx0.018$) is comparable to or larger than the $\sim0.01$--$0.03$ effect sizes claimed, the missing difference test is the omission that matters most.
 \end{enumerate}
-Each problem can inflate a more complex model or hide noise.
-Together they make the published comparison not merely imprecise, but ill-posed.
-
+Each of these defects works independently to either flatter the more complex model or mask the random noise that would otherwise undercut its claims. Combined, they ensure the published comparison is not just imprecise, but fundamentally ill-posed.
 \subsection{Shared evaluation harness}
-Each model runs in its own environment.
-The repositories do not share code or import one another.
-Each writes raw per-trial predictions (\texttt{nctid}, score, label, split) for validation and
-test.
-A single independent evaluator then applies the same rules to every file:
+We run each model entirely in its own environment. The two repositories never share code and never import one another. Instead, each model simply writes its raw, per-trial predictions (\texttt{nctid}, score, label, split) to disk for both the validation and test sets. A single, independent evaluator then reads these files and applies the exact same rules to every model:
 \begin{itemize}[leftmargin=1.4em,itemsep=1pt,topsep=2pt]
-\item \textbf{Threshold selection.}
-For each model we choose the F1-maximising threshold on its \emph{own validation} scores
-(midpoints between adjacent scores), freeze it, and apply it to test.
-HINT may emit probabilities and MEXA-CTP logits; the absolute scale does not matter.
-\item \textbf{Ranking metrics.}
-ROC-AUC and PR-AUC use \emph{continuous} scores only.
-We never binarise before ranking, which avoids the PR-AUC defect above.
-\item \textbf{Uncertainty.}
-We report $95\%$ bootstrap confidence intervals from $1000$ test-set resamples with a fixed seed.
-\item \textbf{Reference.}
-Every results table includes an all-positive trivial baseline, so F1 is read against the class
-imbalance.
+\item \textbf{Threshold selection.} We calibrate each model purely on its \emph{own validation} predictions. The harness scans the midpoints between adjacent validation scores to find the exact threshold that maximizes F1. We then freeze that threshold and apply it to the test set. This means HINT can safely emit sigmoid probabilities while MEXA-CTP outputs raw logits. The absolute score offset does not matter; the harness evaluates each model fairly on its own scale.
+\item \textbf{Ranking metrics.} We compute ROC-AUC and PR-AUC strictly on \emph{continuous} scores. We never binarize the predictions before ranking them. This makes the metrics invariant to the underlying score scale and completely bypasses the PR-AUC defect identified earlier.
+\item \textbf{Uncertainty.} We generate $95\%$ confidence intervals using $1000$ bootstrap resamples of the test set. We fix the random seed to guarantee these intervals remain perfectly reproducible.
+\item \textbf{Reference.} Every results table includes a trivial, all-positive baseline. This forces the reader to interpret any reported F1 score against the performance of a dummy model that simply ignores the input and guesses positive for every trial under the exact same class imbalance.
 \end{itemize}
-Neither repository evaluates itself; final numbers come only from the shared harness.
-Any remaining evaluation flaw can sit in only one place, and that place is auditable.
-The tabular baselines of Section~\ref{sec:tabfm} are additional prediction files scored by the
-same protocol.
-
+Under this architecture, neither repository evaluates itself. The final numbers flow entirely from the shared harness reading raw prediction files. This setup makes it structurally impossible for two repositories to make the same mistake in different ways. The evaluation logic might still contain a flaw, but it can now only hide in \emph{one} place. And that single place is fully auditable. The same harness scores the tabular baselines of Section~\ref{sec:tabfm}, which are simply additional prediction files, so every model in this paper---deep or tabular---is judged by one protocol.
 \subsection{Data and protocol}
-Both models use the same TOP splits (Table~\ref{tab:splits}).
-The global seed is $2023$.
-For our harness front-end we use ICD-10-CM~2024 with \texttt{icd2vec} ($64$-d disease embeddings),
-MACAW SMILES embeddings ($15$-d, \texttt{random\_state=2023}), and BioBERT
-(\texttt{dmis-lab/biobert-v1.1}) for eligibility text.
-These inputs are not identical to either model's published encoders
-(Table~\ref{tab:encoders}).
-We standardise the split, protocol, and metrics --- not the front-end encoders --- so the encoder
-difference remains a flagged confound.
+We force both models to operate on the exact same TOP benchmark splits (Table~\ref{tab:splits}). We freeze the global random seed at 2023. For the input data representations, we rely on the 2024 version of the ICD-10-CM hierarchy and embed the disease codes into 64 dimensions using \texttt{icd2vec}. We map drug molecules into 15-dimensional SMILES embeddings via MACAW, specifically locking \texttt{random\_state=2023} to guarantee deterministic outputs. We encode all eligibility criteria text using BioBERT (\texttt{dmis-lab/biobert-v1.1}).
+These are our harness's inputs; they are not identical to either model's published encoders,
+which is why the per-modality encoders differ across the three configurations
+(Table~\ref{tab:encoders}). We standardise the split, protocol and metrics --- not the
+front-end encoders --- so the encoder difference remains a confound we flag rather than remove.
 \begin{table}[t]
 \centering\small
 \caption{The models do \emph{not} share encoders. Only the BioBERT criteria encoder is common,
@@ -504,13 +338,11 @@ Criteria & BioBERT (paragraph) & BioBERT (statement) & BioBERT (\texttt{biobert-
 MEXA-CTP \citep{zhang2025mexactp} papers/repositories; our-retrain column from this harness
 (Section~\ref{sec:methods}). \end{minipage}
 \end{table}
-During training we sweep the learning rate identically for both architectural arms, select the
-best epoch on validation, and use early stopping with patience~$10$.
+During training, we sweep the learning rate identically for both architectural arms. We select the optimal epoch based entirely on validation performance, enforcing early stopping with a patience of 10.
 \begin{table}[t]
 \centering
 \small
-\caption{Evaluation splits and class balance. The validation--test positive-rate shift
-(especially in phase~III) limits how well a validation-selected threshold can transfer to test.}
+\caption{Evaluation splits and class balance. Note the severe shift in positive rate between validation and test (especially in Phase III), which naturally limits how well any validation-selected threshold can transfer to the final evaluation.}
 \label{tab:splits}
 \begin{tabular}{lccccc}
 \toprule
@@ -523,32 +355,32 @@ Phase~III & 3094 & 344 & 0.666 & 1146 & 0.750 \\
 \end{tabular}
 \end{table}
 \paragraph{A prior discrepancy: MEXA-CTP's reported dataset matches neither the shipped data nor
-its own results.}
-Before any code defect, MEXA-CTP's stated dataset is internally inconsistent.
-Its Table~1 reports per-phase (train / test / success ratio) of $1{,}088/312/70\%$ (I),
-$2{,}611/789/33\%$ (II) and $4{,}313/1{,}147/30\%$ (III).
-The data shipped in its repository
-(\texttt{DataPath/\{trainphase,validphase,test\}/phase\_*}) match the HINT TOP counts of
-Table~\ref{tab:splits} exactly --- $1044/117/627$ (I), $4005/446/1654$ (II),
-$3094/344/1146$ (III), with test positive rates $0.553/0.555/0.750$.
-The reported phase~I and~II test sizes ($312$, $789$) are roughly half the shipped sizes
-($627$, $1654$), and the reported success ratios fall with phase while the shipped rates rise.
-Which split underlies the published metrics is settled by the results: MEXA-CTP's Table~2 lists
-HINT at ROC-AUC $0.573/0.621/0.685$, matching our HINT run on the shipped split
-($0.574/0.621/0.685$) to within $0.001$, not any split of the Table~1 sizes.
-The reported metrics were therefore computed on the shipped HINT split, while Table~1 describes a
-different, unused split.
-That is a more basic reproducibility problem than any single code bug: the documented dataset does
-not describe the data behind the results.
-We evaluate every model on the shipped counts of Table~\ref{tab:splits}, which are also the counts
-behind MEXA-CTP's reported HINT baseline.
+its own results.} Before any code-level defect, MEXA-CTP's stated dataset is internally
+inconsistent. Its Table~1 reports per-phase (training / test / success-ratio) of
+$1{,}088/312/70\%$ (I), $2{,}611/789/33\%$ (II) and $4{,}313/1{,}147/30\%$ (III), under
+per-phase 2014 split days. But the data actually shipped in MEXA-CTP's own repository
+(\texttt{DataPath/\{trainphase,validphase,test\}/phase\_*}) contains \emph{exactly} the HINT TOP
+counts of Table~\ref{tab:splits} --- $1044/117/627$ (I), $4005/446/1654$ (II), $3094/344/1146$
+(III), with test positive rates $0.553/0.555/0.750$. The two disagree in every phase: the
+reported phase~I and~II test sets ($312$, $789$) are roughly \emph{half} the shipped ones
+($627$, $1654$), and the reported success ratios ($70/33/30\%$, \emph{decreasing} with phase)
+are not the shipped positive rates ($55/55/75\%$, \emph{increasing} with phase). Which split
+underlies the reported numbers is then settled by the results themselves: MEXA-CTP's Table~2
+lists HINT at ROC-AUC $0.573/0.621/0.685$ for phases~I/II/III --- matching our HINT run on the
+shipped split ($0.574/0.621/0.685$) to within $0.001$, not any split of the Table~1 sizes. The
+reported metrics were therefore computed on the shipped HINT split, while Table~1 describes a
+\emph{different}, unused split. This is a more basic reproducibility problem than any single
+code bug: the paper's documented dataset does not describe the data underlying its own results.
+We evaluate every model in this paper on the shipped counts of Table~\ref{tab:splits}, which are
+also the counts behind MEXA-CTP's reported HINT baseline.
 % =====================================================================
 \section{Defects}
 \label{sec:defects}
 \begin{table*}[t]
 \centering\small
-\caption{Ten code-level defects (D1--D5 substantive; D6--D10 secondary/runtime).
-Every defect ID in the text refers to this table.}
+\caption{Master list of the ten code-level defects found (D1--D5 substantive, D6--D10
+secondary/runtime), with the consequence of each. Every defect mentioned in the text
+references its ID here.}
 \label{tab:defects}
 \begin{tabular}{clp{4.3cm}l}
 \toprule
@@ -569,13 +401,14 @@ D10 & Checkpoint load fails under PyTorch $\ge2.6$ & Reproducibility break & Run
 \end{table*}
 \begin{table}[t]
 \centering\small
-\caption{Parameter registration for the interaction mechanism.
-In the original plain-\texttt{dict} model, self-attention, cross-attention and routers are
+\caption{Parameter registration for the interaction mechanism. In the original
+plain-\texttt{dict} model the self-attention, cross-attention and router sub-modules are
 invisible to \texttt{named\_parameters()}, so none of the $264$ mechanism tensors reach the
-optimizer or change after a backward+step.
-With \texttt{nn.ModuleDict}, all $144$ cross-attention tensors update.
-Released checkpoints serialise only $48$--$49$ keys, none for attention or routers.
-A single backward+step is enough: a tensor absent from the optimizer cannot change at any step.}
+optimizer and none change after a backward+step. The \texttt{nn.ModuleDict} fix registers
+all of them; all $144$ cross-attention tensors are then updated. The released checkpoints
+serialise only $48$--$49$ keys, none of them attention or router. A single backward+step
+suffices as proof: a tensor absent from the optimizer cannot change at any step, so the
+zero update generalises to all of training without a full run.}
 \label{tab:paramreg}
 \begin{tabular}{lccccc}
 \toprule
@@ -588,81 +421,84 @@ Fixed (\texttt{nn.ModuleDict})   & 72 & 144 & 48 & 319{,}562 & 144/144 \\
 \bottomrule
 \end{tabular}
 \end{table}
-We do not need a full training run to show that the mechanism never learns.
-``Never trained'' and ``never saved'' follow from PyTorch module semantics: a plain
-\texttt{dict} is not a submodule, so its parameters never enter \texttt{named\_parameters()},
-the iterator used by both the optimizer and \texttt{state\_dict()}.
-Those tensors cannot receive gradients, update, or serialise, for any data, learning rate, or
-epoch count.
-Table~\ref{tab:paramreg} confirms this at three levels: $0$ tensors in the optimizer, $0$
-changed after a backward+step, and $0$ mechanism keys in every released checkpoint.
-The released optimizer state tracks exactly the $48$ non-mechanism trainable tensors and
-allocates no Adam moments for attention or routers --- further evidence that the mechanism never
-entered the optimizer.
+We do not need to train the buggy model to prove it never learns: ``never trained'' and
+``never saved'' are not stochastic outcomes but a deterministic consequence of PyTorch's
+module semantics. A plain \texttt{dict} is not registered as a submodule, so its parameters
+never enter \texttt{named\_parameters()} --- the exact iterator that both the optimizer and
+\texttt{state\_dict()} consume. The tensors therefore cannot receive gradients, cannot be
+updated, and cannot be serialised, regardless of the data, learning rate, or number of
+epochs. Table~\ref{tab:paramreg} is confirmation of this at three levels ($0$ tensors in the
+optimizer, $0$ changed after a backward+step, $0$ mechanism keys in every released
+checkpoint), not a run that merely happened to fail. The released checkpoints also serialise
+the optimizer state alongside the weights, and it tracks exactly the $48$ trainable
+non-mechanism tensors with no moment buffers for any attention or router parameter: the
+Adam optimizer never even allocated state for the mechanism, because it never entered the
+optimizer in the first place.
+\paragraph{An entire modality silently zeroed (D5).} The shipped
+\texttt{data/sentence2embedding.pkl} --- HINT's cache of BioBERT sentence embeddings for the
+eligibility criteria --- is an empty dictionary (6 bytes). \texttt{protocol2feature} looks up
+each criterion sentence in this dictionary and, finding nothing, falls back to
+\texttt{torch.zeros(1,768)}: HINT's eligibility-criteria modality returns an all-zero vector
+for \emph{every} trial. Any run from the public repository (ours included) therefore trains
+and evaluates HINT with a dead criteria branch unless the cache is regenerated.
+\emph{We repaired the cache and measured the effect.} Regenerating the full BioBERT criteria
+cache ($513{,}863$ sentence embeddings, \texttt{dmis-lab/biobert-v1.1}) and re-scoring the
+released HINT checkpoint with a \emph{live} criteria branch changes its phase-III performance by
+nothing: ROC-AUC $0.6850$ vs $0.6851$ (paired $\Delta=-0.0001$, $95\%$ CI $[-0.0017,+0.0016]$,
+$p=0.93$) and PR-AUC $0.8519$ vs $0.8517$ ($\Delta=+0.0002$, $p=0.78$); the HINT$-$MEXA gap is
+identical to four decimals ($+0.1671$ either way). The empty cache is thus a genuine defect --- a
+whole modality is silently dead --- but a \emph{quantifiably inert} one: feeding real
+eligibility-criteria embeddings in place of zeros moves HINT's numbers by $0.0001$. We verified
+that this is a real substitution, not a silent no-op: with the regenerated cache the criteria
+branch emits a non-zero embedding (mean L2 norm $>0$) for every trial, versus an exact zero vector
+before. This strengthens rather than complicates the paper's thesis: HINT's released output is
+\emph{empirically} unchanged by activating its criteria modality (we say ``empirically'', not
+``provably'' --- this is a measurement on the released checkpoint, not a proof), so its signal is
+carried in practice by the disease codes (Section~\ref{sec:ablation}), and none of the published
+MEXA-CTP-over-HINT advantage can be attributed to D5 degrading HINT's evaluation. (This is the released-checkpoint re-scoring; a
+full retrain-from-scratch with the live cache is the one remaining check, currently blocked by
+defect~D10 --- \texttt{torch.load} failing under PyTorch~$\ge2.6$ --- a fitting obstacle. We do
+not expect it to change the verdict, since even feeding the live branch to the trained model
+changes nothing.) Two careful corollaries survive: we still do not claim eligibility-criteria
+\emph{text} is uninformative in general --- only that HINT does not use it --- and our tabular
+protocol's criteria \emph{counts} (Section~\ref{sec:tabfm}), computed directly from the text,
+are unaffected by D5 and already carry a shallow criteria signal.
 
-\paragraph{An entire modality silently zeroed (D5).}
-The shipped \texttt{data/sentence2embedding.pkl} --- HINT's BioBERT cache for eligibility
-criteria --- is an empty dictionary (6~bytes).
-\texttt{protocol2feature} looks up each criterion sentence and, on a miss, falls back to
-\texttt{torch.zeros(1,768)}.
-The criteria modality is therefore an all-zero vector for every trial unless the cache is
-regenerated.
-We regenerated the full BioBERT cache ($513{,}863$ embeddings, \texttt{dmis-lab/biobert-v1.1})
-and re-scored the released HINT checkpoint with a live criteria branch.
-Phase-III performance is unchanged: ROC-AUC $0.6850$ vs.\ $0.6851$ (paired
-$\Delta=-0.0001$, $95\%$ CI $[-0.0017,+0.0016]$, $p=0.93$) and PR-AUC $0.8519$ vs.\ $0.8517$
-($\Delta=+0.0002$, $p=0.78$).
-The HINT$-$MEXA gap is identical to four decimals ($+0.1671$ either way).
-The empty cache is a real defect --- a whole modality is dead --- but a quantifiably inert one.
-With the regenerated cache the criteria branch has non-zero L2 norm for every trial, so the
-substitution is real, not a no-op.
-This is an empirical measurement on the released checkpoint, not a proof about all possible
-retrains; a full retrain with the live cache remains blocked by D10
-(\texttt{torch.load} under PyTorch~$\ge2.6$).
-We do not expect it to change the verdict, because feeding live embeddings to the trained model
-already changes nothing.
-Two corollaries remain: we do not claim that eligibility-criteria \emph{text} is uninformative in
-general --- only that HINT does not use it --- and our tabular criteria \emph{counts}
-(Section~\ref{sec:tabfm}), computed from the text, are unaffected by D5.
-
-\paragraph{Secondary defects (D6--D10).}
-The published learning rate $5\times10^{-2}$ diverges once attention actually trains (D8; it
-survived only because D1 froze those parameters).
-\texttt{squeeze()} collapses the batch dimension when $B{=}1$ (D9).
-Checkpoint loading fails under PyTorch~$\ge2.6$ (D10).
-Device-placement bugs (D6, D7) block CPU runs and two ablation variants.
-
+\paragraph{Secondary defects (D6--D10).} The published learning rate $5\times10^{-2}$ diverges
+once the attention actually trains (D8; it survived only because those parameters were frozen
+by D1); a \texttt{squeeze()} collapses the batch dimension when $B=1$ (D9); checkpoint loading
+fails under PyTorch $\geq$ 2.6 (D10); and two device-placement bugs (D6, D7) block CPU
+execution and the instantiation of two ablation variants.
 \subsection{Two defects concealing each other}
 \label{sec:twobugs}
-The Cauchy loss pushes routing probabilities toward zero; masking drops tokens below threshold
-$\tau$.
-If every token in a sequence falls below $\tau$, the attention mask saturates, softmax is taken
-over an all-$-\infty$ row, and the output is NaN.
-This never appeared in the authors' runs because D1 froze the router \emph{weights} at
-initialisation.
-The Cauchy loss is still computed and its gradient still flows \emph{through} the router into the
-encoder parameters, which do train --- so the loss is not inert on the encoder side, consistent
-with MEXA-CTP's reported routing-loss effects on representations.
-What never happens is the part the mechanism needs: the router itself never adapts.
-Held at a fixed random projection, it cannot drive tokens below $\tau$, so masking saturation
-and NaN never occur.
-The precise claim is not ``the sparsification loss did nothing,'' but ``it could shape encoders
-yet never trained the router, so adaptive routing never operated and its failure mode never
-surfaced.''
-\textbf{D1 is why training did not crash.}
-Repairing either defect alone yields a model that either does nothing or fails; both must be
-fixed together.
-That is why no prior work, including the original authors', tested the mechanism the paper
-describes.
-
-Instrumenting the mask (phase~II, seed~$2023$) shows the failure is deterministic: without a
-guard, the first NaN appears at steps $9$, $28$ and $184$ for learning rates
-$5\times10^{-2}$, $10^{-2}$ and $10^{-3}$, and by step~$300$ the fraction of tokens below
-$\tau$ rises from $13\%$ at $10^{-4}$ to $100\%$ at $5\times10^{-2}$.
-A minimal guard that keeps the highest-probability token removes the NaN but not the collapse:
-at $5\times10^{-2}$ the mean routing probability falls to $0.003$ and every sequence reduces to
-one token, so cross-attention operates over a single token.
-The architecture can be kept numerically alive, but not architecturally.
+The Cauchy loss exists to push routing probabilities toward zero, and the masking step
+removes tokens whose probability falls below $\tau$. If all tokens of a sequence fall below
+$\tau$, the attention mask becomes fully saturated, softmax is taken over an all-$-\infty$
+row, and the output is NaN. This was never observed because D1 froze the router
+\emph{weights} at their initialisation. We are precise about what ``frozen'' does and does not
+imply: the Cauchy sparsity loss is still computed each step and its gradient still flows
+\emph{through} the router into the encoder parameters, which do train --- so the loss is not
+literally inert, and MEXA-CTP's own reported effect of the routing loss on the learned
+representation is consistent with that encoder-side gradient. What never happens is the part
+the mechanism depends on: the router itself never adapts. Held at a fixed random projection,
+it cannot learn to drive tokens below $\tau$, so routing probabilities stay near their
+initialisation and the masking saturation that produces the NaN never occurs in the authors'
+runs. The correction is therefore not ``the sparsification loss did nothing'' but ``the
+sparsification loss could shape the encoders yet never trained the router, so the adaptive
+routing the paper describes never operated and its failure mode never surfaced.''
+\textbf{D1 is thus the reason training did not crash.} Repairing either defect alone
+produces a model that either does nothing or fails; both must be addressed together, which
+is why no prior work---including the original authors'---ever tested the mechanism the
+paper is about.
+Instrumenting the masking step (phase~II, seed~2023) confirms this is deterministic rather
+than a numerical accident: without a guard the first NaN appears at step $9$, $28$ and $184$
+for learning rates $5\times10^{-2}$, $10^{-2}$ and $10^{-3}$, and the fraction of tokens
+driven below $\tau$ by step~$300$ rises from $13\%$ at $10^{-4}$ to $100\%$ at
+$5\times10^{-2}$. A minimal guard that always keeps the highest-probability token removes
+the NaN but not the collapse: at $5\times10^{-2}$ the mean routing probability falls to
+$0.003$ and every sequence is reduced to a single surviving token, so the cross-attention
+the paper studies operates over one token. The architecture can be kept numerically alive,
+but not architecturally.
 \begin{table}[t]
 \centering\small
 \caption{Masking collapse on phase~II (seed 2023, 300 steps). Without the guard, the
@@ -687,12 +523,12 @@ $1\times10^{-4}$ & none & 0.13 & 0.379 & 0.13 & 0.921 \\
 \section{Results}
 \label{sec:results}
 \subsection{A fair, corrected comparison}
-With the shared harness and the defect fixes of Section~\ref{sec:methods}, the HINT versus
-MEXA-CTP comparison is well-posed.
-We ask three questions: how the models compare on phase~III under one protocol; whether
-MEXA-CTP's cross-attention contributes anything once trained; and where HINT's signal comes from
-under ablation.
-The answers are: no measurable difference; nothing; and the disease codes alone.
+With the shared harness and the defect fixes of Section~\ref{sec:methods} in place, the HINT
+versus MEXA-CTP comparison is finally well-posed. We put three questions to it in turn: how the
+two models compare head-to-head on phase~III under one protocol; whether MEXA-CTP's central
+cross-attention mechanism contributes anything once it is actually trained; and where HINT's own
+predictive signal comes from once its modalities are ablated. As the next three parts show, the
+answers are, respectively, no measurable difference, nothing, and the disease codes alone.
 \subsubsection{The head-to-head result}
 \begin{table*}[t]
 \centering
@@ -712,15 +548,14 @@ MEXA (released checkpoint), \emph{point} & 0.518 & 0.788 & 0.809 \\
 \end{tabular}
 \begin{minipage}{\linewidth}\vspace{2pt}\scriptsize Source: \texttt{results\_phase\_III.csv}; MEXA arms from \texttt{ab\_test\_results\_phase\_III.csv} (deduplicated on arm/seed/config); released checkpoint from \texttt{seed\_sensitivity\_phase\_III.csv}. No model exceeds the trivial baseline on F1. \end{minipage}
 \end{table*}
-Table~\ref{tab:fair} reports phase~III.
-The released MEXA-CTP checkpoint is near chance ranking.
-Because attention weights were never saved, each load draws fresh random values.
-That reload variance appears in all three phases (Table~\ref{tab:reload}): ROC-AUC ranges
-$0.055$--$0.117$ over five seeds --- larger than the reported gains --- and one seed in five
-falls below $0.5$ in every phase.
-F1 at the checkpoint's fixed $0.5$ threshold is more volatile still (ranges up to $0.65$ in
-phase~I and $0.48$ in phase~III).
-A metric this unstable cannot support the reported relative improvement.
+Table~\ref{tab:fair} gives phase~III. The released MEXA-CTP checkpoint is statistically
+indistinguishable from random ranking. Because its attention weights were never saved,
+every load draws fresh random values, and this reload variance holds across all three
+phases (Table~\ref{tab:reload}): ROC-AUC spans a range of $0.055$--$0.117$ over five seeds,
+larger than the reported gains, and one seed in five falls below $0.5$ in every phase. With
+the checkpoint's hard-coded $0.5$ threshold the F1 is more volatile still, its range reaching
+$0.65$ (phase~I) and $0.48$ (phase~III) across reloads of a \emph{single} checkpoint --- a
+metric this unstable cannot support the reported $11.3\%$ improvement.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}
@@ -796,22 +631,20 @@ Phase~III & 7 & +0.0004 & 0.964 \\
 \end{tabular}
 \begin{minipage}{\linewidth}\vspace{2pt}\scriptsize Source: \texttt{ab\_test\_results\_phase\_\{I,II,III\}.csv}, deduplicated on (arm, seed, config) then paired on seed. $p$ is a paired $t$-test on phase~III only; phases~I--II ($n{=}2,3$) are descriptive, and we do \emph{not} pool across phases (different prevalences, sizes and effects --- not exchangeable). \end{minipage}
 \end{table*}
-It does not (Table~\ref{tab:ab}).
-MEXA-CTP has three loss/routing hyperparameters: the Cauchy sparsity weight $\rho_1$, the
-NT-Xent contrastive weight $\rho_2$, and the routing threshold $\tau$.
-On runs matched by $(\rho_1,\rho_2,\tau,\text{seed})$, the buggy arm (cross-attention frozen at
-random initialisation) is if anything \emph{higher} than the fixed arm that trains it:
-$\Delta=+0.032$ (phase~I), $+0.010$ (phase~II), $+0.0004$ (phase~III, $p=0.96$ --- the only
-cell with enough pairs to test).
-The effect is never negative and never significant --- the opposite of a useful mechanism.
-We do not test the $n{=}2,3$ phases and do not pool across phases (different prevalences, sizes
-and effects).
-The other components that separate MEXA-CTP from a plain encoder are likewise inert: sweeping
-$\tau$ from $0.0$ to $0.5$ moves phase~III ROC-AUC only from $0.685$ to $0.669$, and $\rho_2$
-from $0$ to $0.1$ moves it from $0.678$ to $0.688$ --- both inside a single-seed interval
-($\pm0.035$).
-Every architectural distinction of MEXA-CTP can be disabled, frozen, or retuned without
-measurable cost.
+It does not (Table~\ref{tab:ab}). MEXA-CTP has three loss/routing hyperparameters: the Cauchy
+routing-sparsity weight $\rho_1$, the NT-Xent contrastive weight $\rho_2$, and the routing
+threshold $\tau$. Pairing runs matched on $(\rho_1,\rho_2,\tau,\text{seed})$,
+the buggy arm---in which the cross-attention is frozen at its random initialisation---is if
+anything \emph{higher} than the fixed arm that actually trains it: $\Delta=+0.032$ (phase~I),
+$+0.010$ (phase~II) and $+0.0004$ (phase~III, $p=0.96$, the only cell with enough pairs to
+test). The effect is never negative and never significant, the opposite of what a useful
+mechanism would produce; we neither test the $n{=}2,3$ phases nor pool across the three, which
+are not exchangeable. The two other components that distinguish MEXA-CTP from a
+plain encoder are equally inert: sweeping the routing threshold $\tau$ from $0.0$ to $0.5$
+moves phase~III ROC-AUC only from $0.685$ to $0.669$, and the contrastive weight $\rho_2$
+from $0$ to $0.1$ moves it from $0.678$ to $0.688$---both well inside a single seed's
+confidence interval ($\pm0.035$). Every architectural component that distinguishes MEXA-CTP
+from a plain encoder can be disabled, frozen, or retuned without measurable cost.
 \subsubsection{HINT's ablation ladder is flat}
 \label{sec:ablation}
 \begin{table*}[t]
@@ -834,29 +667,26 @@ HINTModel (run~B) & 0.562 {\scriptsize [0.519, 0.606]} & 0.618 {\scriptsize [0.5
 \begin{minipage}{\linewidth}\vspace{2pt}\scriptsize Source: \texttt{hint\_variants\_phase\_\{I,II,III\}.csv}. \emph{HINTModel (run~B)} is a separate retraining with freshly initialised encoders, distinct from the main HINT run (\emph{run~A}) in Tables~\ref{tab:fair} and~\ref{tab:baselines}; the two differ by $0.012$ ROC on phase~I ($0.574$ vs $0.562$) and $0.023$ on phase~III ($0.685$ vs $0.708$) --- itself an illustration of run-to-run variance. Both runs use the identical pipeline and ICD-10-CM 2024 encoding, so this difference is training-seed noise, not a version effect. \end{minipage}
 \end{table*}
 The drug branch alone is near chance in every phase ($0.583$, $0.548$, $0.540$ for phases
-I--III), while the disease branch alone matches the full model within noise ($0.573$ vs
-$0.562$, $0.626$ vs $0.618$, $0.700$ vs $0.708$; Table~\ref{tab:ablation}).
-The gap widens with phase: the disease branch rises from $0.573$ to $0.700$ as ICD history
-accumulates, while the molecule branch stays near $0.55$.
-HINT's phase-III advantage over chance is therefore carried by disease codes.
-Adding cross-modal interaction on top of the disease branch changes ROC-AUC by at most $0.016$,
-and the confidence interval always covers the disease-only value.
-All predictive signal is in the disease codes, consistent with LINT's text-only design
-\citep{gao2024lint}.
+I--III), while the disease branch alone matches the full model to within noise ($0.573$ vs
+$0.562$, $0.626$ vs $0.618$, $0.700$ vs $0.708$; Table~\ref{tab:ablation}). The gap between
+the two branches widens with phase---the disease branch climbs from $0.573$ to $0.700$ as
+trials accumulate ICD history, whereas the molecule branch stays pinned near $0.55$---so the
+model's entire phase-III advantage over chance is carried by the disease codes. Adding the
+cross-modal interaction on top of the disease branch changes ROC-AUC by at most $0.016$ and
+its confidence interval always contains the disease-only value. All predictive signal comes
+from the disease codes, consistent with LINT's text-only design \citep{gao2024lint}.
 
-Run~B in Table~\ref{tab:ablation} and run~A in Table~\ref{tab:fair} are the same architecture
-trained twice; they differ by $0.023$ ROC-AUC on phase~III ($0.685$ vs.\ $0.708$).
-We first read that as seed noise swamping between-model effects --- an interpretation we later
-overturned (Section~\ref{sec:wrong}).
-A proper five-seed retraining puts HINT's training-seed sd at $0.0024$
-(Section~\ref{sec:power}); run~B's $0.708$ was an outlier that also reinitialised the encoders.
-HINT is seed-reproducible.
-What swamps between-model comparisons is \emph{test-set sampling} (DeLong SE of a difference
-$\approx0.018$), developed in Section~\ref{sec:power}.
-
+Table~\ref{tab:ablation}'s \emph{run~B} of HINT and \emph{run~A} of Table~\ref{tab:fair} are the
+identical architecture trained twice and differ by $0.023$ ROC-AUC on phase~III ($0.685$ vs
+$0.708$). We first read this as evidence that seed noise alone swamps between-model effects --- but
+that reading was wrong, and we correct it here (it is one of the overturned findings of
+Section~\ref{sec:wrong}). A proper five-seed retraining puts HINT's training-seed sd at only
+$0.0024$ (Section~\ref{sec:power}); run~B's $0.708$ was an outlier that additionally reinitialised
+the encoders, not a representative draw. HINT is in fact seed-reproducible. The quantity that
+genuinely swamps between-model comparisons is not seed variance but \emph{test-set sampling} (the
+DeLong SE of a difference, $\approx0.018$), which we develop in Section~\ref{sec:power}.
 \subsection{Where the predictable signal lives}
-With the comparison fair, we ask where the signal lives.
-It does not require a deep model, a molecule graph, or attention.
+With the comparison fair, we locate the predictable signal --- and find it in a place that needs no deep model, no molecule, and no attention.
 \subsubsection{Classical baselines}
 \label{sec:baselines}
 \begin{table*}[t]
@@ -893,43 +723,43 @@ Phase~III & icd2vec\_64 & RandForest & 0.6988 $\pm$ 0.0009 & 0.685 {\scriptsize 
 \begin{minipage}{\linewidth}\vspace{2pt}\scriptsize Source: \texttt{icd\_representation\_phase\_*.csv} (per-seed values in \texttt{icd\_representation\_raw\_phase\_*.csv}), \texttt{results\_phase\_*.csv}. \textbf{Pipelines shown here are ranked by test score; the validation-selected variant used in the text is discussed in Section~\ref{sec:wrong}.} \end{minipage}
 \end{table*}
 Neither deep model significantly outperforms gradient boosting on the same embeddings
-(Table~\ref{tab:baselines}).
-On phase~III, HINT's strongest case, gradient boosting reaches $0.651$ against HINT's $0.685$.
-The paired DeLong test gives $\Delta\text{AUC}=+0.034$ (SE~$0.018$, $95\%$ CI
-$[-0.000,+0.068]$, $p=0.052$) --- not significant, a stronger claim than CI overlap alone.
-Gaps on phases~I and~II are smaller ($0.028$ and $0.005$).
-A plain ICD-only pipeline --- disease codes, no molecules, no graph, no attention --- lands
-within $\sim$0.03 ROC-AUC of the full architecture.
-Selecting the ICD-only classifier on \emph{validation} and reading once on test gives phase-III
-ROC-AUC $0.671$ (Table~\ref{tab:icd} lists $0.699$, but that is the \emph{test}-ranked pipeline;
-the validation-selected value is $0.671$, inside HINT's interval).
-Either way, the multi-modal machinery buys nothing over a shallow disease-code model.
-
+(Table~\ref{tab:baselines}). On phase~III, HINT's strongest case, gradient boosting reaches
+$0.651$ against HINT's $0.685$; the paired DeLong test on the difference gives
+$\Delta\text{AUC}=+0.034$ (SE $0.018$, $95\%$ CI $[-0.000,+0.068]$, $p=0.052$), i.e.\ not
+significant even here, rather than the weaker overlap-of-CIs argument. The point-estimate gap
+is smaller still on phases~I and II ($0.028$ and $0.005$). Pushing further, a plain ICD-only
+pipeline---disease codes, no molecules, no graph, no attention---lands within $\sim0.03$
+ROC-AUC of the full architecture. We are careful here not to repeat the test-peeking we criticise:
+selecting the ICD-only classifier on \emph{validation} and reading it once on test gives phase-III
+ROC-AUC $0.671$ (Table~\ref{tab:icd} lists the higher $0.699$, but that is the \emph{test}-ranked
+pipeline; the honest, validation-selected value is $0.671$, within HINT's interval, not above it).
+Either way the elaborate multi-modal machinery buys nothing over a shallow disease-code model.
 % ---------------------------------------------------------------------
 \subsubsection{Tuned gradient-boosting SOTA does not change the verdict}
 \label{sec:gbdt}
-A fair objection is that the baselines above use near-default hyperparameters, and that the claim
-is compelling only against \emph{tuned} tabular SOTA
-boosters~\citep{bentejac2019comparative}.
-We therefore add XGBoost, LightGBM and CatBoost~\citep{prokhorenkova2018catboost}, each tuned
-by a small grid on the \emph{validation} split (never on test), with class-imbalance handling
-throughout (XGBoost \texttt{scale\_pos\_weight}$=n_-/n_+$, LightGBM
-\texttt{class\_weight=balanced}, CatBoost \texttt{auto\_class\_weights=Balanced}).
-CatBoost receives the ICD chapter as a native high-cardinality categorical.
-The recipe matches recent clinical-ML practice~\citep{sun2025explainable}.
-All three use GRAM disease-ontology features.
-
-The verdict is unchanged in every phase (Table~\ref{tab:gbdt}).
-On phase~III, tuned XGBoost reaches $0.691$ and CatBoost $0.680$ against HINT's $0.685$, both
-\emph{above} HINT on PR-AUC ($0.865$, $0.860$ vs.\ $0.852$).
-On phase~II all three sit just below HINT ($0.589$--$0.616$ vs.\ $0.621$).
-On phase~I CatBoost ($0.611$) is the strongest single model of any kind.
-Inference uses DeLong, not CI overlap: HINT$-$GradBoost $p=0.052$
-(Section~\ref{sec:power}), and all three point estimates lie inside the $0.05$ minimum
-detectable effect.
-Tuning and switching to tabular SOTA opens no detectable gap either way --- a power limit, not
-demonstrated equivalence.
-Reproduce with \texttt{gbdt\_baselines.py --phase \{I,II,III\}}.
+A fair objection is that the baselines above use fixed, near-default hyper-parameters, and
+that ``no deep model beats gradient boosting'' is only compelling against a \emph{tuned}
+boosting model and against the algorithms that are the actual state of the art on tabular
+data~\citep{bentejac2019comparative}. We therefore add the three standard tabular-SOTA
+gradient-boosting libraries --- XGBoost, LightGBM and CatBoost~\citep{prokhorenkova2018catboost}
+--- each \emph{tuned} by a small grid selected on the \emph{validation} split (never on test),
+with class-imbalance handling on throughout (XGBoost \texttt{scale\_pos\_weight}$=n_-/n_+$,
+LightGBM \texttt{class\_weight=balanced}, CatBoost \texttt{auto\_class\_weights=Balanced}) and
+CatBoost given the ICD chapter as a native high-cardinality categorical. This is the same
+grid-searched boosting-family recipe used in recent clinical-ML work~\citep{sun2025explainable}. All
+three run on the disease-ontology (GRAM) feature set.
+The verdict is unchanged across all three phases (Table~\ref{tab:gbdt}). On phase~III ---
+HINT's strongest phase --- tuned XGBoost reaches ROC-AUC $0.691$ and CatBoost $0.680$ against
+HINT's $0.685$, both \emph{above} HINT on PR-AUC ($0.865$, $0.860$ vs $0.852$); on phase~II all
+three sit just below HINT ($0.589$--$0.616$ vs $0.621$); on phase~I CatBoost ($0.611$) is the
+strongest single model of any kind, above HINT's $0.574$. Inference is by DeLong, not
+CI overlap: the sklearn gradient booster --- the one whose per-trial scores we retain --- gives
+HINT$-$GradBoost $p=0.052$ (Section~\ref{sec:power}), i.e.\ no significant gap even in HINT's
+best phase, and all three point estimates sit well inside the $0.05$ minimum detectable effect.
+Tuning and switching to the tabular SOTA thus opens no detectable gap in either direction, so
+the tie is not an artefact of an untuned baseline (a power limit, not demonstrated equivalence).
+Reproduce with \texttt{gbdt\_baselines.py --phase \{I,II,III\}}, which also dumps per-trial
+scores for an exact DeLong test on each tuned library.
 \begin{table}[t]
 \centering\small
 \caption{Tuned XGBoost / LightGBM / CatBoost (validation-selected grid, class-imbalance
@@ -952,15 +782,16 @@ HINT (run~A)     & 0.574 {\scriptsize [.53,.62]} & 0.621 {\scriptsize [.59,.65]}
 % ---------------------------------------------------------------------
 \subsubsection{A zero-training foundation model matches HINT}
 \label{sec:tabfm}
-Section~\ref{sec:baselines} used learned embeddings.
-We now use the opposite construction: interpretable, hand-computed per-trial features and a
-broad panel of tabular learners, including a tabular foundation model.
-Each trial becomes a table with three layers: (i)~HINT metadata (phase, drug/disease/ICD counts,
-top-level ICD chapter); (ii)~RDKit physicochemical descriptors aggregated per trial (retaining
-chemistry, discarding the graph); (iii)~scalar summaries of eligibility text (counts, length,
-inclusion/exclusion ratio).
-Molecule coverage is $100\%$ on every split.
-Evaluation uses the same shared harness.
+The classical baselines of Section~\ref{sec:baselines} use learned embeddings. We now test
+the opposite construction: interpretable, hand-computed per-trial features fed to a broad
+panel of tabular learners, including a tabular foundation model. Each trial is reduced to a
+table with three feature layers. First, HINT metadata: phase, drug/disease/ICD-code counts,
+and the top-level ICD chapter. Second, RDKit physicochemical descriptors aggregated per
+trial (molecular weight, logP, TPSA, ring and hydrogen-bond counts, and so on), which retain
+the molecule's chemistry while discarding its graph. Third, scalar summaries of the
+eligibility text (criterion counts, length, inclusion/exclusion ratio). Molecule coverage is
+$100\%$ on every split, so no trial is disadvantaged by a missing structure. Evaluation uses
+the same shared harness as every other model.
 \begin{table*}[t]
 \centering
 \small
@@ -1447,17 +1278,17 @@ III & HINT  & \textbf{0.182} {\scriptsize[.170,.195]} & 0.101 {\scriptsize[.079,
 \end{table}
 \subsubsection{Decision-curve analysis: the lookup wins clinically too}
 \label{sec:dca}
-Calibration and ranking are proxies; the clinical question is net benefit under a decision
-threshold~\citep{fritz2024effect}.
-Decision-curve analysis plots
-$\mathrm{TP}/n - (\mathrm{FP}/n)\,p_t/(1-p_t)$ against threshold $p_t$, relative to treat-all
-and treat-none (net benefit $0$).
-On phase~III (Figure~\ref{fig:dca}), all three models beat treat-all once $p_t$ exceeds the
-$0.75$ base rate --- the regime in which advancing every trial is harmful.
-The two-column base-rate lookup of Section~\ref{sec:dataquality} matches or exceeds HINT and
-TabFM across the useful range (e.g.\ $0.230$ vs.\ $0.193$ and $0.166$ at $p_t{=}0.75$).
-The clinical-utility verdict matches the statistical one: deep models add nothing a historical
-base-rate table does not already provide.
+Calibration and ranking are proxies; the clinically relevant question is net benefit under a
+decision threshold~\citep{fritz2024effect}. Decision-curve analysis plots the net benefit of
+acting on a model --- $\mathrm{TP}/n - (\mathrm{FP}/n)\,\tfrac{p_t}{1-p_t}$ --- against the
+threshold probability $p_t$, relative to ``advance every trial'' (treat-all) and ``advance
+none'' (net benefit $0$). On phase~III (Figure~\ref{fig:dca}), all three models beat treat-all
+once the threshold rises above the $0.75$ base rate, where indiscriminately advancing every
+trial becomes harmful --- the regime a sponsor triaging a portfolio actually operates in. But
+the two-column base-rate lookup of Section~\ref{sec:dataquality} has net benefit at least as
+high as HINT or TabFM across the useful threshold range (e.g.\ $0.230$ vs $0.193$ and $0.166$
+at $p_t{=}0.75$). The clinical-utility verdict matches the statistical one: the deep models add
+nothing a historical base-rate table does not already provide.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}
@@ -1483,7 +1314,7 @@ is the dotted $y{=}0$ line. \texttt{dca.py}.}
 \label{fig:dca}
 \end{figure}
 \subsection{The metric artefacts that inflate the reported gap}
-The reported advantage is largest where the evaluation metric is weakest.
+The reported advantage is largest exactly where the evaluation metric is weakest.
 \subsubsection{F1 is uninformative on this benchmark}
 \label{sec:f1}
 \begin{table*}[t]
@@ -1504,14 +1335,16 @@ Test-oracle (upper bound) & 0.7119 & 0.7139 & 0.8596 \\
 \end{tabular}
 \begin{minipage}{\linewidth}\vspace{2pt}\scriptsize Source: recomputed from \texttt{preds/preds\_hint\_phase\_\{I,II,III\}.csv} (F1 at each thresholding rule). On phase~I the calibrated and trivial values coincide to four decimals. The oracle sweep ranges over observed scores and therefore excludes the trivial rule, which is why it can fall marginally below it. \end{minipage}
 \end{table*}
-Calibration helps but cannot rescue the metric (Table~\ref{tab:f1}).
-Moving from the published fixed-$0.5$ rule to a validation-calibrated threshold raises HINT's
-F1 from $0.593$ to $0.713$ on phase~I and from $0.637$ to $0.687$ on phase~II --- gains that
-look large until compared with the trivial all-positive predictor ($0.713$, $0.714$, $0.857$).
-On phase~I the calibrated F1 equals the trivial baseline to four decimals ($0.7125$): the
-F1-optimal rule is to predict that every trial succeeds.
-Even a test-oracle threshold only ties the trivial rule on phase~II ($0.7139$ vs.\ $0.7138$).
-When the best attainable F1 ignores the input, F1 measures the class prior, not model quality.
+Calibration helps but cannot rescue the metric (Table~\ref{tab:f1}). Moving from the
+published fixed-$0.5$ rule to a validation-calibrated threshold raises HINT's F1 from
+$0.593$ to $0.713$ on phase~I and from $0.637$ to $0.687$ on phase~II---gains that look
+substantial until compared with the trivial all-positive predictor, which scores $0.713$,
+$0.714$ and $0.857$ on the three phases. On phase~I the validation-calibrated F1 equals the
+trivial baseline to four decimal places ($0.7125$): the F1-optimal decision rule is to
+predict that every trial succeeds. Even the test-oracle threshold---an upper bound that
+peeks at the labels---only ties the trivial rule ($0.7139$ vs $0.7138$ on phase~II). When
+the best attainable F1 is the one produced by ignoring the input entirely, F1 measures the
+class prior, not model quality, and any F1-based ranking on this benchmark is uninformative.
 \subsubsection{The claimed advantage tracks metric weakness}
 \label{sec:metricweak}
 \begin{table*}[t]
@@ -1605,7 +1438,7 @@ baseline's own evaluation code, which is precisely the point: \textbf{a defect i
 model's evaluation propagates into every comparison made against it}. HINT is the reference model for this benchmark and the base of downstream work \citep{chen2024uq}, so the propagation surface is wide. We flag this as a risk to be audited, not as a finding we have verified beyond the case examined here.
 % =====================================================================
 \subsection{The limit of measurability}
-We next bound what any comparison on this benchmark can establish at its current size.
+Finally, we bound what any comparison on this benchmark can establish at its current size.
 \subsubsection{Statistical power: phase-III differences below $0.05$ ROC-AUC are unverifiable}
 \label{sec:power}
 The comparisons above should be read through what the benchmark can actually resolve. We make
@@ -1761,11 +1594,10 @@ reproduces DeLong throughout (HINT$-$TabFM $p=0.34$ vs $0.33$).
 % =====================================================================
 \section{What we got wrong, and what fixed it}
 \label{sec:wrong}
-This section is evidence, not an appendix.
-During this work we formed seven directional findings.
-Under tighter methodology, six were overturned and one --- the PR-AUC bug --- narrowed to a
-single phase (Table~\ref{tab:dissolved}).
-That pattern is itself a central result.
+This section is evidence, not an appendix. Seven directional findings were formed during this
+work; under tightened methodology six were overturned and the remaining one --- the PR-AUC bug ---
+narrowed to a single phase rather than dissolving outright (Table~\ref{tab:dissolved}).
+Their consistency is the result.
 \begin{table*}[t]
 \centering
 \small
@@ -1786,60 +1618,58 @@ Seed noise ($\sim$0.02--0.03) swamps all effects & $n{=}2$ run-to-run $0.023$ & 
 \end{tabular}
 \begin{minipage}{\linewidth}\vspace{2pt}\scriptsize Source: Section~\ref{sec:wrong}; current values in \texttt{ab\_test\_results\_phase\_*.csv}, \texttt{preds/preds\_hintvar\_*.csv}, \texttt{icd\_representation\_phase\_*.csv}, \texttt{tabular\_grid\_phase\_*.csv}, \texttt{optionB\_phaseIII\_multiplecomparison.csv}. \end{minipage}
 \end{table*}
-The first finding shows a specific statistical error: an effect looked many standard deviations
-from zero because the sd was taken from a \emph{different} MEXA-CTP routing configuration
-($\tau{=}0.3$, seed sd $0.0024$) than the one under test ($\tau{=}0.0$, seed sd $0.0221$).
-Noise must be estimated per configuration.
-
-The fourth is the sharpest.
-Selecting the best of twelve pipelines by test score is the same error we criticise in
-MEXA-CTP's epoch selection.
-We reproduced that flaw in our own re-analysis and caught it only by applying the discipline we
-ask of others.
-The same trap reappeared in the $7\times11$ tabular grid of Section~\ref{sec:tabfm}: test ranking
-appeared to \emph{beat} HINT in phases~I and~II, but the validation-selected winner is only
-equivalent (Table~\ref{tab:dissolved}).
-
-\paragraph{Errors in the re-analysis code.}
-Two further defects were caught by controls rather than crashes.
-Run directories collided across phases, so phase~I outputs silently overwrote phase~III.
-ICD features were read in dataset order while labels were read in CSV order, misaligning rows
-and collapsing ROC-AUC to near chance --- a false claim that would have looked dramatic without
-an independent control.
-
-\paragraph{Errors at drafting.}
-Twice, numbers drifted between analysis and prose.
-Arm means from a three-seed run were pasted into a table labelled seven-seed.
-More seriously, we recorded MEXA-CTP's headline claim as ``4.9\%'' --- a figure that appears
-nowhere in that paper.
-A paper arguing that others reported numbers carelessly cannot misquote the number it contests.
-Correcting the quote produced Section~\ref{sec:metricweak}: the misquote had collapsed three
-metrics into one figure and removed the structure of the argument.
-Every table here is regenerated from stored predictions by script; every figure quoted from
-another paper is traced to a verbatim sentence in it.
-
+The first illustrates a specific statistical error worth naming. The effect was judged real
+because it appeared to be many standard deviations from zero---but the standard deviation
+had been estimated from a \emph{different} MEXA-CTP routing configuration ($\tau=0.3$, seed sd
+$0.0024$ --- a coincidence of value with, but unrelated to, HINT's five-seed sd above) than
+the one under test ($\tau=0.0$, seed sd $0.0221$, roughly ten times larger). Noise must be
+estimated per configuration.
+The fourth is the sharpest. Selecting the best of twelve pipelines by test score is exactly
+the error this paper criticises in MEXA-CTP's epoch selection. We reproduced the flaw we set
+out to document, in our own re-analysis, and caught it only by imposing on ourselves the
+discipline we demanded of others. The same trap reappeared in the larger $7\times11$ tabular
+grid of Section~\ref{sec:tabfm}: ranked by test score the grid appears to \emph{beat} HINT in
+phases~I and~II, but the validation-selected winner is merely \emph{equivalent}---the naive
+reading was again an artefact of selecting on test (the \emph{Tabular model beats HINT} row of Table~\ref{tab:dissolved}).
+\paragraph{Errors in the re-analysis code.} Two further defects were caught by controls
+rather than by crashes. Run directories collide across phases, so phase~I outputs silently
+overwrote phase~III's. And ICD features were read in dataset order while labels were read in
+CSV order, misaligning rows and collapsing ROC-AUC to near chance---a result that, had it not
+been checked against an independent control, would have supported a dramatic and entirely
+false claim.
+\paragraph{Errors at drafting.} Twice, numbers drifted between analysis and prose. Arm means
+were transcribed from an earlier three-seed run into a table labelled seven-seed. More
+seriously, we recorded MEXA-CTP's headline claim as ``4.9\%''---a figure that appears nowhere
+in that paper. A paper arguing that others reported numbers carelessly cannot itself misquote
+the number it contests. Correcting it produced Section~\ref{sec:metricweak}: the misquote had
+collapsed three metrics into one figure and destroyed the structure carrying our strongest
+argument. Every table in this paper is generated from stored predictions by script; every
+figure quoted from another paper is traced to a verbatim sentence in it.
 \medskip
-\noindent\textbf{Implication.}
-Each of these errors produced a plausible, publishable-looking result.
-None crashed; none was visible without deliberate replication.
-On a benchmark where true effects are around $0.01$ ROC-AUC and the sampling noise on a
-between-model difference is $\approx0.018$, this is the expected failure mode.
+\noindent\textbf{Implication.} Every one of these errors produced a plausible,
+publishable-looking result. None crashed. None was visible without deliberate replication. On
+a benchmark where true effect sizes are around $0.01$ ROC-AUC and the sampling noise on a
+between-model difference is $\approx0.018$ (an order of magnitude above either model's
+training-seed sd), this is the expected failure mode, not an unusual one.
 % =====================================================================
 \section{Limitations}
 \begin{itemize}\itemsep2pt
   \item \textbf{Statistical power.} After matching and de-duplication the A/B comparison
         rests on 7 pairs (phase~III), 3 (phase~II) and only 2 (phase~I). Phase~I is
         uninformative rather than weakly suggestive.
-  \item \textbf{Known high-signal metadata is absent from the processed data.}
-        Enrolment, sponsor type and trial start year are standard predictors, but the TOP CSVs
-        shipped with HINT contain only \texttt{nctid, status, why\_stop, label, phase,
-        diseases, icdcodes, drugs, smiless, criteria}.
-        Recovering the missing fields requires re-deriving from ClinicalTrials.gov XML.
-        All tabular models here are evaluated without them; adding them is the most promising
-        next step and would likely raise every tabular baseline.
-        That would \emph{strengthen} the thesis: simple per-trial features would beat the deep
-        models by more, and the deep architecture's marginal contribution would remain
-        unmeasurable.
+  \item \textbf{Known high-signal metadata is absent from the processed data.} Enrollment
+        count, sponsor type and trial start year are strong, standard predictors, but the TOP
+        CSVs shipped with HINT contain only \texttt{nctid, status, why\_stop, label, phase,
+        diseases, icdcodes, drugs, smiless, criteria} --- none of the three. Recovering them
+        requires re-deriving from the raw ClinicalTrials.gov XML (the benchmark's
+        sponsor-inference pipeline does this for sponsor). All tabular models here, ours and
+        the GBDTs, are therefore evaluated without these features; adding them is the most
+        promising next step and could raise every tabular baseline. We state the direction
+        explicitly, since it is easy to read as a threat: if these features lift the tabular
+        baselines, they \emph{strengthen} the paper's thesis rather than weaken it --- simple
+        per-trial features would beat the deep models by even more, and the deep architecture's
+        marginal contribution over cheap tabular signal would remain unmeasurable. There is no
+        configuration of this experiment in which richer metadata rescues the deep models.
   \item \textbf{HINT's training-seed sd, now measured.} We retrained HINT five times (seeds
         $2023$--$2027$) on phase~III: test ROC-AUC $0.685\pm0.0024$ (range $[0.682,0.687]$). HINT
         is therefore reproducible across training seeds --- its seed sd ($0.0024$) is about twice
@@ -1858,15 +1688,18 @@ between-model difference is $\approx0.018$, this is the expected failure mode.
         features, not HINT's learned embeddings; the two constructions agree, but neither is a
         byte-for-byte match of HINT's inputs. The GRAM feature set also exceeds the foundation
         model's feature cap, so its winning result is carried by classical learners.
-  \item \textbf{HINT's criteria modality is dead under the shipped cache (D5), and inert once
-        repaired.}
-        Every public HINT run feeds a zero vector to the criteria branch.
-        Regenerating the BioBERT cache and re-scoring (Section~\ref{sec:defects}) changes
-        phase-III ROC-AUC by $-0.0001$ ($p=0.93$).
-        A full retrain with the live cache remains blocked by D10; we do not expect it to change
-        the verdict.
-        We claim only that HINT does not use criteria text, not that the text is uninformative in
-        general.
+  \item \textbf{HINT's criteria modality is dead under the shipped cache (D5) --- now measured,
+        and inert.} Because \texttt{sentence2embedding.pkl} is empty, every HINT run here (and in
+        the public repository) feeds a zero vector to the eligibility-criteria branch. We
+        regenerated the full BioBERT cache and re-scored HINT with a live branch
+        (Section~\ref{sec:defects}): the effect on phase-III performance is $\Delta$ROC-AUC
+        $=-0.0001$ ($p=0.93$) and $\Delta$PR-AUC $=+0.0002$ ($p=0.78$) --- a real defect with no
+        measurable effect on HINT's numbers. The one check still owed is a full
+        \emph{retrain}-from-scratch with the live cache (blocked here by defect~D10); we do not
+        expect it to change the verdict, since re-scoring the trained model with real criteria
+        embeddings already changes nothing. We therefore still make no claim that
+        eligibility-criteria \emph{text} is uninformative in general --- only that HINT does not
+        use it.
   \item \textbf{The fusion gain is single-checkpoint.} The phase-III HINT+TabFM gain varies
         the tabular model's seed against one fixed HINT checkpoint; a fuller estimate would
         vary HINT's training seed as well, and the per-area strata behind it hold only
@@ -1898,61 +1731,47 @@ between-model difference is $\approx0.018$, this is the expected failure mode.
 % =====================================================================
 \section{Conclusion}
 Under a shared, corrected protocol, the reported advantage of MEXA-CTP over HINT does not
-survive.
-No difference between the two is detectable below a minimum detectable effect of
-$\approx0.05$ ROC-AUC at this sample size (Section~\ref{sec:power}), and neither clearly beats
-gradient boosting on the same inputs.
-MEXA-CTP's central mechanism was never trained in the released artefact and, once repaired,
-contributes nothing measurable.
-HINT's multimodal architecture contributes nothing measurable over its disease codes alone.
-A zero-training tabular foundation model, and a broad panel of classical learners selected on
-validation, match HINT in every phase on disease-ontology features, at zero training cost and
-with comparable seed reproducibility (TabFM sd $0.0011$; HINT $0.0024$ over five retrainings).
-Combining models yields no gain over the best single model once combiner and metric choice are
-corrected for: the small phase-III edge exists only against the weaker member and does not
-survive multiple-comparison correction.
-
-The broader result is that claimed effect sizes on TOP lie below measurement noise.
-We show this by measuring the noise and by documenting seven of our own directional findings that
-did not survive replication.
-Improvement claims on TOP should report multiple seeds, validation-based selection of every free
-choice, confidence intervals, a trivial baseline, and an explicit minimum detectable effect ---
-or they are not verifiable.
-
-Two directions follow.
-In the short term, a shared evaluation harness should accompany any benchmark whose reference
-implementation is reused as a baseline: a defect in that evaluation code biases every later
-comparison.
-In the longer term, retrospective benchmarks may not be repairable by protocol alone.
-CT~Open \citep{wang2025ctopen} argues that contamination is a second, independent failure mode,
-and its live time-stamped design addresses both.
-We regard that as the right destination; this paper shows how much of the existing retrospective
-literature fails the first of the two checks.
-
-\paragraph{What a $0.70$-ROC model could actually do.}
-Accuracy is not benefit \citep{fritz2024effect}.
-At ROC-AUC $\approx0.70$ and the $0.75$ phase-III base rate, a model cannot safely gate a
-go/no-go decision: thresholds that catch useful failures also discard many successes, and the
-F1-optimal rule remains ``predict every trial succeeds'' (Table~\ref{tab:f1}).
-The realistic use is triage --- ranking a portfolio so that the lowest-scoring fraction receives
-extra scrutiny --- and even there a per-indication historical base rate
-(Section~\ref{sec:dataquality}) ranks almost identically.
-On TOP the model earns its keep only if it beats that lookup, which it does not.
-Any deployment claim should state the decision, the threshold, and the base-rate baseline it must
-beat --- none of which a headline ROC number supplies.
-
-\paragraph{Responsible disclosure.}
-We frame every code-level defect in this paper (D1--D10) as an ecosystem reproducibility hazard,
-not as author misconduct.
-Each is reproducible from the unmodified public repositories; several (the empty cache and the
-released-checkpoint reload variance) silently affect anyone who re-runs the code.
-Following responsible-disclosure practice, we reported the defects before submission: HINT
-issue~\#15
+survive; no difference between the two is detectable (below a minimum detectable effect of
+$\approx0.05$ ROC-AUC at this sample size, Section~\ref{sec:power}), and neither clearly beats gradient boosting on the
+same inputs. MEXA-CTP's central mechanism was never trained in the released artifact, and
+once repaired contributes nothing measurable. HINT's multimodal architecture contributes
+nothing measurable over its disease codes alone. A zero-training tabular foundation model,
+and indeed any of a broad panel of classical learners once selected on validation, matches
+HINT in every phase using disease-ontology features alone, at zero training cost and with
+comparable seed reproducibility (TabFM sd $0.0011$, HINT $0.0024$ over five retrainings).
+Combining models yields no gain over the best single model
+once the choice of combiner and metric is corrected for: the small phase-III edge exists only
+against the weaker member and does not survive multiple-comparison correction, so it is not
+evidence for the deep interaction mechanism.
+The broader result is that claimed effect sizes on this benchmark lie below measurement
+noise. We demonstrate this not only by measuring the noise but by documenting seven of our own directional findings that did not survive replication. Improvement claims on TOP should be accompanied by multiple seeds, validation-based selection of every free choice, confidence intervals, and a trivial baseline---or they are not verifiable.
+Two directions follow. In the short term, a shared evaluation harness costs little and should accompany any benchmark whose reference implementation is reused as a baseline, since a defect in that implementation's evaluation code silently biases every subsequent comparison. In the longer term, retrospective benchmarks may not be repairable by protocol alone: CT~Open \citep{wang2025ctopen} argues that contamination is a second, independent failure mode, and its live time-stamped design removes both at once. We regard that as the right destination; the contribution of this paper is to show how much of the existing retrospective literature does not survive the first of the two checks.
+\paragraph{What a $0.70$-ROC model could actually do.} It is worth being concrete about the
+clinical stakes, since accuracy is not benefit \citep{fritz2024effect}. At ROC-AUC $\approx0.70$
+and the $0.75$ base rate of phase~III, a model cannot safely gate a go/no-go decision: at any
+threshold that flags a useful fraction of failures it also discards many eventual successes,
+and the F1-optimal rule is still ``predict every trial succeeds'' (Table~\ref{tab:f1}). The
+realistic use is triage, not decision --- ranking a portfolio so that the lowest-scoring, say,
+$10\%$ receive extra scrutiny --- and even there a per-indication historical base rate
+(Section~\ref{sec:dataquality}) would rank almost identically, so the model earns its keep only
+if it beats that lookup, which on TOP it does not. The ORACLE trial \citep{fritz2024effect} is
+the cautionary precedent: a model that raised agreement without raising accuracy. Any
+deployment claim on this benchmark should therefore state the decision, the threshold, and the
+base-rate baseline it must beat --- none of which a headline ROC number supplies.
+\paragraph{Responsible disclosure.} We frame every code-level defect in this paper (D1--D10,
+including the un-trained mode-experts mechanism, the empty eligibility-criteria cache, and the
+binarised PR-AUC computation) as an ecosystem reproducibility hazard, not as author misconduct.
+Each is reproducible from the unmodified public repositories, and several --- the empty cache
+and the released-checkpoint reload variance in particular --- silently affect anyone who
+re-runs the code, which is precisely why they matter. Following responsible-disclosure
+practice, we reported the defects to the respective project maintainers through their public
+issue trackers before submission: HINT issue \#15
 (\url{https://github.com/futianfan/clinical-trial-outcome-prediction/issues/15}; audited commit
-\texttt{8dc0497}) and MEXA-CTP issue~\#2
-(\url{https://github.com/murai-lab/MEXA-CTP/issues/2}; audited commit \texttt{b898dbb}), also
-recorded in \texttt{DISCLOSURE.md}.
-Our aim is to harden a shared benchmark; we welcome corrections from the original authors.
+\texttt{8dc0497}) and MEXA-CTP issue \#2 (\url{https://github.com/murai-lab/MEXA-CTP/issues/2};
+audited commit \texttt{b898dbb}), both also recorded in \texttt{DISCLOSURE.md} with the code
+release. Our aim is to harden a shared
+benchmark that the whole subfield depends on, and we would welcome corrections from the original
+authors.
 \paragraph{Reproducibility.} All code, raw per-trial predictions and result tables are released at \url{https://github.com/azizcetinerr/top-benchmark-reeval}. All defect audits are time-stamped: the HINT repository was audited at commit \texttt{8dc0497} and MEXA-CTP at commit \texttt{b898dbb} (both July 2026; full hashes in \texttt{DISCLOSURE.md}). Every table in this paper is regenerated from stored predictions without retraining. Settings: seed 2023, ICD-10-CM 2024, BioBERT \texttt{dmis-lab/biobert-v1.1}, 1000 bootstrap resamples at 95\% for all confidence intervals and paired tests, except the phase-III multiple-comparison stress test (Section~\ref{sec:optionb}), which uses 10{,}000 resamples to stabilise the corrected $p$-values. The tabular baselines of Section~\ref{sec:tabfm} additionally use TabFM (\texttt{tabfm-1.0.0-jax}) with $32$ ensemble members and RDKit 2026.03 for molecular descriptors and Morgan fingerprints. Feature construction: RDKit descriptors are aggregated across a trial's drugs by mean and max; Morgan/ECFP fingerprints use radius $2$ and $256$ bits, combined across drugs by bit-union (a bit is set if present in any drug); GRAM disease features are multi-hot over ontology ancestors. The tuned gradient-boosting baselines (Section~\ref{sec:gbdt}) use XGBoost 3.2, LightGBM 4.7 and CatBoost 1.2, each grid-selected on validation.
 \section*{Data availability}
 All code, raw per-trial predictions and result tables generated in this study are publicly available at \url{https://github.com/azizcetinerr/top-benchmark-reeval}. The underlying TOP benchmark and the HINT and MEXA-CTP implementations are third-party resources, publicly available from their original repositories (audited at commits \texttt{8dc0497} and \texttt{b898dbb}); TOP itself is derived from de-identified, publicly accessible ClinicalTrials.gov records. No new data were generated.

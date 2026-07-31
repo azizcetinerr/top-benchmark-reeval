@@ -682,8 +682,14 @@ in both cases. Three observations:
 |---|---|
 | `mexa/main.py` | Item 1: validation loader, validation-based selection, early stopping. Item 2: `--no_moduledict_fix` toggle, sanity check. Plus divergence guard and `--skip_test_eval`. |
 | `mexa/ctp/models_nlayers.py` | Item 2: three `dict` → `nn.ModuleDict` (toggleable) + `sanity_check_parameters()`. Plus full-mask guard, CPU portability fix, `squeeze(-1)` fix. |
+| `hint/HINT/model.py` | D7: pass `device` through the two ablation constructors. |
+| `hint/HINT/learn_phaseIII.py` | D10: explicitly allow loading the released full-object checkpoint under PyTorch ≥2.6. |
 
-> **HINT's repository was never modified** — scores are extracted externally.
+These study changes are published without vendoring either upstream tree:
+`../patches/README.md` maps them to the audited commits and provides
+`git apply --check` instructions. HINT scores are still extracted and evaluated
+by the external shared harness; the HINT patch only removes the D7/D10 runtime
+blockers.
 
 ---
 

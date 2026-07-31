@@ -1,15 +1,9 @@
 # Responsible-disclosure record
 
-This file backs the "Responsible disclosure" paragraph in the paper. It contains (1) the
-ready-to-post issue text for each upstream repository and (2) a table you must complete once
-the issues are filed, so the paper's claim is literally true.
+This file backs the "Responsible disclosure" paragraph in the paper. It contains
+the filed issue text, issue URLs, and exact audited revisions.
 
-**Action required before camera-ready / submission:** open the two issues below, then paste the
-resulting URLs and the exact commit hashes you audited into the table at the bottom. Until that
-table is filled, the paper says only that reports were *prepared and are being filed* — do not
-upgrade that wording to "reported" until the URLs exist.
-
-Audited repositories (fill in the fork/commit you actually ran):
+Audited repositories:
 - HINT: `https://github.com/futianfan/clinical-trial-outcome-prediction` — commit `8dc0497f23fdb84e2905da7655924a91e6e79798` (audited 2026-07)
 - MEXA-CTP: `https://github.com/murai-lab/MEXA-CTP` — commit `b898dbb41930197187fe3867e3616ffd406a48a6` (audited 2026-07)
 

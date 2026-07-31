@@ -1,0 +1,13 @@
+# CPU environment for regenerating the paper from released predictions and
+# running the classical baselines. Versions are intentionally not invented or
+# pinned here; the exact TabFM environment used by the study is recorded in
+# tabfm_baseline_optionA/requirements_tabfm_jax.txt.
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+rdkit
+xgboost
+lightgbm
+catboost

@@ -19,6 +19,27 @@ verified against raw data with `verify_paper_tables.py` (all match; the only res
 sample-vs-population sd convention and two validation-calibrated F1 cells that differ by
 ≤0.0013 from threshold tie-breaking).
 
+## Code and artefact provenance
+
+- Study modifications to HINT and MEXA-CTP are released as unified diffs in
+  `../patches/`, based respectively on audited upstream commits
+  `8dc0497f23fdb84e2905da7655924a91e6e79798` and
+  `b898dbb41930197187fe3867e3616ffd406a48a6`. See
+  `../patches/README.md` for the defect mapping and apply commands.
+- `preds/preds_hint_criteria_phase_III.csv` is the phase-III HINT inference
+  output obtained with the regenerated BioBERT eligibility-criteria cache. It
+  contains validation and test rows in the standard
+  `nctid,score,label,split` schema and is the direct input to
+  `quantify_d5.py`. SHA-256:
+  `7b9538c484e6d4256041f17a95ab30cefa668387be21e576c3f4922c8aa5f111`.
+- The corresponding populated cache is approximately 1.7 GB and is not
+  distributed. The six-byte empty upstream cache remains the evidence for D5;
+  the released per-trial CSV is sufficient to reproduce the reported
+  inference-only D5 comparison.
+- Checkpoints, MEXA's generated `DataPath/`, and the populated cache are
+  external full-inference/retraining inputs. They are not required to
+  regenerate analyses from the stored predictions.
+
 ---
 
 ## Tables to typeset (all inline in the .tex)

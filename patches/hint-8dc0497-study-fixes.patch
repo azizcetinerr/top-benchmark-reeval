@@ -1,0 +1,93 @@
+diff --git a/HINT/learn_phaseIII.py b/HINT/learn_phaseIII.py
+index 245f5fa..8309efc 100644
+--- a/HINT/learn_phaseIII.py
++++ b/HINT/learn_phaseIII.py
+@@ -83,7 +83,7 @@ if not os.path.exists(hint_model_path):
+ 	model.bootstrap_test(test_loader)
+ 	torch.save(model, hint_model_path)
+ else:
+-	model = torch.load(hint_model_path)
++	model = torch.load(hint_model_path, weights_only=False)
+ 	model = model.to(device)
+ 	model.bootstrap_test(test_loader)
+ 
+diff --git a/HINT/model.py b/HINT/model.py
+index 1bdece2..7eed725 100644
+--- a/HINT/model.py
++++ b/HINT/model.py
+@@ -643,21 +643,27 @@ nn.ModuleList([ nn.ModuleList([nn.Linear(3,2) for j in range(5)] + [None]) for i
+ 
+ class Only_Molecule(Interaction):
+ 
+-	def __init__(self, molecule_encoder, disease_encoder, protocol_encoder, 
+-					global_embed_size, 
++	# --- FIX: 'device' eksikti ---
++	# Interaction.__init__ 'device' parametresini ZORUNLU ister (varsayilani yok),
++	# ama bu super() cagrisi onu gecirmiyordu -> Only_Molecule hic ORNEKLENEMIYORDU
++	# (TypeError). Ayni hata Only_Disease'de de var. device eklendi.
++	def __init__(self, molecule_encoder, disease_encoder, protocol_encoder,
++					device,
++					global_embed_size,
+ 					highway_num_layer,
+-					prefix_name, 
++					prefix_name,
+ 					epoch = 20,
+-					lr = 3e-4, 
++					lr = 3e-4,
+ 					weight_decay = 0):
+-		super(Only_Molecule, self).__init__(molecule_encoder=molecule_encoder, 
+-											disease_encoder=disease_encoder, 
+-											protocol_encoder=protocol_encoder, 
+-											global_embed_size = global_embed_size, 
++		super(Only_Molecule, self).__init__(molecule_encoder=molecule_encoder,
++											disease_encoder=disease_encoder,
++											protocol_encoder=protocol_encoder,
++											device = device,
++											global_embed_size = global_embed_size,
+ 											highway_num_layer = highway_num_layer,
+-											prefix_name = prefix_name, 
++											prefix_name = prefix_name,
+ 											epoch = epoch,
+-											lr = lr, 
++											lr = lr,
+ 											weight_decay = weight_decay,)
+ 		self.molecule2out = nn.Linear(self.global_embed_size,1)
+ 
+@@ -668,23 +674,26 @@ class Only_Molecule(Interaction):
+ 
+ class Only_Disease(Only_Molecule):
+ 
+-	def __init__(self, molecule_encoder, disease_encoder, protocol_encoder, 
+-					global_embed_size, 
++	# --- FIX: 'device' eksikti (Only_Molecule ile ayni bug) ---
++	def __init__(self, molecule_encoder, disease_encoder, protocol_encoder,
++					device,
++					global_embed_size,
+ 					highway_num_layer,
+-					prefix_name, 
++					prefix_name,
+ 					epoch = 20,
+-					lr = 3e-4, 
++					lr = 3e-4,
+ 					weight_decay = 0):
+-		super(Only_Disease, self).__init__(molecule_encoder = molecule_encoder, 
+-											disease_encoder=disease_encoder, 
+-											protocol_encoder=protocol_encoder, 
+-											global_embed_size = global_embed_size, 
++		super(Only_Disease, self).__init__(molecule_encoder = molecule_encoder,
++											disease_encoder=disease_encoder,
++											protocol_encoder=protocol_encoder,
++											device = device,
++											global_embed_size = global_embed_size,
+ 											highway_num_layer = highway_num_layer,
+-											prefix_name = prefix_name, 
++											prefix_name = prefix_name,
+ 											epoch = epoch,
+-											lr = lr, 
++											lr = lr,
+ 											weight_decay = weight_decay,)
+-		self.disease2out = self.molecule2out 
++		self.disease2out = self.molecule2out
+ 
+ 
+ 	def forward(self, smiles_lst2, icdcode_lst3, criteria_lst):

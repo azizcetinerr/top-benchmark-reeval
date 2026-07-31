@@ -1,0 +1,297 @@
+diff --git a/ctp/models_nlayers.py b/ctp/models_nlayers.py
+index 73aa08c..a751315 100644
+--- a/ctp/models_nlayers.py
++++ b/ctp/models_nlayers.py
+@@ -55,7 +55,11 @@ class PositionalEncoding(nn.Module):
+         self.pos_encoding = pos_encoding.unsqueeze(0)
+ 
+     def forward(self, embeddings):
+-        return embeddings + Variable(self.pos_encoding[:, :embeddings.size(1), :embeddings.size(2)], requires_grad=False).to(embeddings.get_device())
++        # --- FIX (tasinabilirlik): .get_device() CPU tensorunde -1 doner ve .to(-1)
++        # hata verir ("Device index must not be negative"). Yani orijinal kod CPU'da
++        # HIC calismiyordu (yalnizca CUDA'da kosulmus). .device hem CPU hem CUDA'da
++        # dogru calisir ve GPU davranisini DEGISTIRMEZ.
++        return embeddings + Variable(self.pos_encoding[:, :embeddings.size(1), :embeddings.size(2)], requires_grad=False).to(embeddings.device)
+     
+     
+ class SelfAttention(nn.Module):
+@@ -147,11 +151,37 @@ class Router(nn.Module):
+         return F.sigmoid(self.fc(tokens))
+     
+ def remasks(masks, prob, threshold):
++    """Router olasiligi esigin altinda kalan token'lari maskeler.
++
++    --- FIX (gizli mimari bug): TAM MASKELEME KORUMASI ---
++    Bir dizideki TUM token'lar esigin altina duserse satirin tamami maskelenir;
++    nn.MultiheadAttention'da key_padding_mask satiri tamamen True olunca softmax
++    hepsi -inf uzerinden alinir ve NaN uretir -> agirliklar NaN -> egitim coker.
++
++    Bu durum orijinal kodda hic GORULMEDI, cunku router'lar duz dict icindeydi ve
++    HIC EGITILMIYORDU (olasiliklar ~0.5'te donuk kaliyordu). ModuleDict fix'i ile
++    router'lar egitilebilir olunca CauchyLoss -- ki gorevi tam da olasiliklari
++    0'a bastirmak -- onlari esigin altina indiriyor ve bug ortaya cikiyor.
++    Yani iki bug birbirini orluyordu: mimari, yayinlandigi haliyle tasarlandigi
++    gibi egitilemiyor.
++
++    Duzeltme minimal ve amaca sadik: yonlendirme token atabilir, ama her dizide
++    EN AZ BIR token acik kalir (en yuksek router olasiligina sahip olan).
++    """
+     if threshold <= 0 or threshold >= 1:
+         return masks
+-    else:
+-        # print('kk', prob.squeeze() < threshold)
+-        return masks | (prob < threshold).squeeze()
++
++    p = prob.squeeze(-1)                      # [B, L]  (squeeze() degil: B=1'de batch'i yutar)
++    new = masks | (p < threshold)
++
++    all_masked = new.all(dim=1)               # tamamen maskelenen satirlar
++    if all_masked.any():
++        # gercek (padding olmayan) token'lar arasindan en yuksek olasilikliyi ac
++        cand = p.masked_fill(masks, float('-inf'))
++        keep = cand.argmax(dim=1)             # hepsi -inf ise argmax=0 (yine de NaN'i onler)
++        idx = all_masked.nonzero(as_tuple=True)[0]
++        new[idx, keep[idx]] = False
++    return new
+ 
+ class CauchyLoss(nn.Module):
+     def __init__(self, epsilon):
+@@ -217,16 +247,33 @@ class ClinicalTtrialsPredictionModelH_nlayers(nn.Module):
+             'router': ['is', 'ic', 'si', 'sc', 'inci', 'incs', 'exci', 'excs'],
+         }
+ 
+-        self.self_att_layers = {}
+-        self.cross_att_layers = {}
+-        self.routers = {}
++        # --- FIX (Madde 2): nn.ModuleDict ---
++        # ORIJINAL BUG: bu uc container duz Python dict'ti ({}). PyTorch duz dict
++        # icindeki alt-modulleri GORMEZ -> parametreleri .parameters()'a girmez
++        # -> optimizer onlari guncellemez, state_dict onlari kaydetmez. Sonuc:
++        # self-attention, cross-attention ve router'lar HIC egitilmedi ve
++        # checkpoint'e HIC yazilmadi (rastgele init olarak kaldilar). Yani
++        # paper'in merkezi iddiasi (mode-expert cross-attention etkilesim ogreniyor)
++        # hic test edilmemis.
++        # FIX: nn.ModuleDict kullan -> alt-moduller kayitli ve egitilebilir olur.
++        # moduledict_fix=False verilirse orijinal (bozuk) davranis geri gelir;
++        # boylece 'fixli vs bozuk' KONTROLLU karsilastirma yapabiliriz (A/B).
++        self.moduledict_fix = getattr(args, 'moduledict_fix', True)
++        if self.moduledict_fix:
++            self.self_att_layers = nn.ModuleDict()
++            self.cross_att_layers = nn.ModuleDict()
++            self.routers = nn.ModuleDict()
++        else:
++            self.self_att_layers = {}
++            self.cross_att_layers = {}
++            self.routers = {}
+ 
+         for selfatt in NAMELIST['selfatt']:
+             self.self_att_layers[selfatt] = nn.ModuleList([SelfAttentionLayer(args.emb_size, args.nhead, args.dropout) for _ in range(args.nlayer)]).to(args.device)
+ 
+         for crossatt in NAMELIST['crossatt']:
+             self.cross_att_layers[crossatt] = nn.ModuleList([CrossAttentionLayer(args.emb_size, args.nhead, args.dropout) for _ in range(args.nlayer)]).to(args.device)
+-        
++
+         for router in NAMELIST['router']:
+             self.routers[router] = Router(args.emb_size).to(args.device)
+ 
+@@ -239,9 +286,28 @@ class ClinicalTtrialsPredictionModelH_nlayers(nn.Module):
+         self.cauchyloss = CauchyLoss(args.epsilon)
+         self.ntxloss = NPairLoss(args.temperature)
+         self.bceloss = findcriterion(args.weighted, args.phase, args.device)
+-    
+ 
+-    
++    def sanity_check_parameters(self, verbose=True):
++        """Madde 2 KANITI: attention/router parametreleri artik kayitli mi?
++        Fix'ten ONCE (duz dict) bu moduller model.named_parameters()'da
++        GORUNMEZDI; optimizer onlari gormez, state_dict'e yazilmazdi.
++        Fix'ten SONRA (nn.ModuleDict) gorunur ve egitilebilir olurlar.
++        Doner: (gruplara gore kayitli tensor sayilari, toplam param sayisi)."""
++        reg = [n for n, _ in self.named_parameters()]
++        groups = {
++            'self_att_layers':  [k for k in reg if k.startswith('self_att_layers')],
++            'cross_att_layers': [k for k in reg if k.startswith('cross_att_layers')],
++            'routers':          [k for k in reg if k.startswith('routers')],
++        }
++        total = sum(p.numel() for p in self.parameters())
++        if verbose:
++            print(f'[sanity] moduledict_fix = {self.moduledict_fix}')
++            for g, ks in groups.items():
++                flag = 'OK' if ks else 'BOS (egitilmiyor!)'
++                print(f'[sanity]   {g:18s}: {len(ks):3d} kayitli tensor  {flag}')
++            print(f'[sanity]   toplam trainable param: {total:,}')
++        return groups, total
++
+     def forward(self, itokens, imasks, in_ctokens, in_cmasks, ex_ctokens, ex_cmasks, stokens, smasks, labels):
+         s = self.sprojection(stokens)
+         s = self.s_pe(s)
+diff --git a/main.py b/main.py
+index de5178b..f3eb8c2 100644
+--- a/main.py
++++ b/main.py
+@@ -1,4 +1,5 @@
+ import os
++import math
+ import argparse
+ import numpy as np
+ import pandas as pd
+@@ -63,6 +64,20 @@ parser.add_argument('--lr', default=5e-2, help='global learning rate', type=floa
+ parser.add_argument('--epochs', default=100, help='epoch', type=int)
+ parser.add_argument("--weighted", help="weighted loss", action="store_true")
+ parser.add_argument('--opt', default='adam', type=str, help='optimizer', choices=['adam', 'sgd'])
++# --- FIX (Madde 1): validation tabanli epoch secimi + early stopping ---
++# Epoch/checkpoint secimi artik test setine degil validation setine gore yapilir.
++# patience: validation metrigi bu kadar epoch boyunca iyilesmezse egitim durur.
++parser.add_argument('--patience', default=10, type=int, help='early stopping patience (validation metrigi uzerinden)')
++# --- FIX (Madde 2): nn.ModuleDict toggle ---
++# Varsayilan: fix ACIK (attention/router'lar egitilebilir). Kontrollu A/B icin
++# --no_moduledict_fix ile orijinal (bozuk) davranisi geri getir.
++parser.add_argument('--no_moduledict_fix', dest='moduledict_fix', action='store_false',
++                    help='Madde 2: nn.ModuleDict fix KAPAT (orijinal bug) — sadece kontrol karsilastirmasi icin')
++parser.set_defaults(moduledict_fix=True)
++# Uzun kosularda hiz icin: test degerlendirmesi zaten SECIME KARISMIYOR (sadece log).
++# Kapatinca epoch suresi ~%30 kisalir; test skorunu sonradan checkpoint'ten harness ile alirsin.
++parser.add_argument('--skip_test_eval', action='store_true',
++                    help='egitim sirasinda test setini olcme (sadece hiz; secim zaten validation ile)')
+ 
+ 
+ # evaluation
+@@ -237,9 +252,20 @@ def main():
+         }
+ 
+         train_dataset = CTPDataset(DATA_FOLDER, subset=args.subset, phase=args.phase, max_length=max_length, reduce=reduce)
++        # --- FIX (Madde 1): epoch secimi icin validation seti ---
++        # Onceki kodda checkpoint secimi test setine gore yapiliyordu (data leak /
++        # test'e bakarak model secme). Simdi ayri bir validation seti yukluyoruz;
++        # secim SADECE bunun uzerinden yapilacak.
++        valid_dataset = CTPDataset(DATA_FOLDER, subset='valid', phase=args.phase, max_length=max_length, reduce=reduce)
+         test_dataset = CTPDataset(DATA_FOLDER, subset='test', phase=args.phase, max_length=max_length, reduce=reduce)
+-        
++
++        if args.subset == 'merged':
++            print('[UYARI] subset=merged: train+valid birlestirilmis, ayri validation seti yok. '
++                  'Validation tabanli secim anlamli degil; subset=train kullanin.')
++
+         train_loader = DataLoader(train_dataset , batch_size=args.trainsize, shuffle=True, num_workers=1)
++        valid_loader = DataLoader(valid_dataset , batch_size=args.testsize, shuffle=False, num_workers=1)
++        # test_loader yalnizca LOGLAMA icin; epoch/checkpoint secimine karismaz.
+         test_loader = DataLoader(test_dataset , batch_size=args.testsize, shuffle=False, num_workers=1)
+ 
+         if args.nlayer == 0:
+@@ -250,6 +276,8 @@ def main():
+ 
+         model = CTPModel(args, max_length=max_length)
+         model.to(args.device)
++        # --- Madde 2 KANITI: attention/router'lar artik optimizer'a gorunuyor mu? ---
++        model.sanity_check_parameters()
+ 
+ 
+ 
+@@ -265,43 +293,94 @@ def main():
+         dfhistory = pd.DataFrame(
+             columns=[
+                 'epoch', 'train_loss', 'train_bce', 'train_cauchy', 'train_ntx', 'train_acc',
+-                'test_loss', 'test_bce', 'test_cauchy', 'test_ntx', 'test_acc', 
++                'valid_loss', 'valid_bce', 'valid_cauchy', 'valid_ntx', 'valid_acc',
++                'valid_f1', 'valid_roc', 'valid_pr',
++                'test_loss', 'test_bce', 'test_cauchy', 'test_ntx', 'test_acc',
+                 'test_f1', 'test_roc', 'test_pr',
+-            ], 
++            ],
+             dtype=np.float16
+         )
+ 
+         best = 0
+-        
++        # --- FIX (Madde 1): early stopping durumu ---
++        best_epoch = 0            # en iyi validation metrigini veren epoch
++        patience_counter = 0      # kac epochtur iyilesme yok
++
++        diverged = False
+         for epoch in range(1, 1 + args.epochs):
+             print('Training...')
+             train = train_step(model, train_loader, optimizer, args.device)
+-            print('Test...')
+-            test = test_step(model, test_loader, args.device)
++
++            # --- IRAKSAMA KORUMASI ---
++            # ModuleDict fix'i sonrasi attention/router'lar da egitildigi icin
++            # orijinal lr (5e-2) IRAKSIYOR ve agirliklar NaN oluyor. O durumda
++            # metrik fonksiyonu anlasilmaz bir sklearn hatasi veriyordu; burada
++            # temiz yakalayip kosuyu 'diverged' olarak sonlandiriyoruz.
++            if not math.isfinite(train['loss']):
++                print(f'\n!! IRAKSADI: epoch {epoch} train loss = {train["loss"]} (NaN/inf).')
++                print(f'   lr={args.lr} bu model icin fazla yuksek. Daha dusuk lr dene '
++                      f'(or. --lr 1e-3). Not: orijinal lr=5e-2 yalnizca attention '
++                      f'egitilmedigi icin ayakta kaliyordu.')
++                diverged = True
++                break
++
++            # --- FIX (Madde 1): secim validation uzerinden ---
++            print('Validation...')
++            valid = test_step(model, valid_loader, args.device)
++            # test yalnizca loglama/seffaflik icin olculur, secime KARISMAZ
++            if args.skip_test_eval:
++                test = {k: float('nan') for k in
++                        ['loss', 'bce', 'cauchy', 'ntx', 'acc', 'f1', 'roc', 'pr']}
++            else:
++                print('Test (log only)...')
++                test = test_step(model, test_loader, args.device)
+ 
+             info = (
+                 int(epoch), train['loss'], train['bce'], train['cauchy'], train['ntx'], train['acc'],
+-                test['loss'],test['bce'], test['cauchy'], test['ntx'], test['acc'], 
++                valid['loss'], valid['bce'], valid['cauchy'], valid['ntx'], valid['acc'],
++                valid['f1'], valid['roc'], valid['pr'],
++                test['loss'],test['bce'], test['cauchy'], test['ntx'], test['acc'],
+                 test['f1'], test['roc'], test['pr'],
+             )
+             dfhistory.loc[epoch-1] = info
+             dfhistory.to_csv(f'{result_dir}/history.csv', index=False)
+-            
+-            isbest = test[args.metric] > best
+-            best = max(best, test[args.metric])
+-            
++
++            # --- FIX (Madde 1): isbest artik VALIDATION metrigine bakiyor ---
++            isbest = valid[args.metric] > best
++            if isbest:
++                best = valid[args.metric]
++                best_epoch = epoch
++                patience_counter = 0
++            else:
++                patience_counter += 1
++
+             state = {
+                 'state_dict': model.state_dict(),
+                 'optimizer': optimizer.state_dict(),
+                 # 'scheduler': scheduler.state_dict(),
+-                'stastics': {'train':train, 'test': test}
++                # secilen epoch'un hem validation hem test istatistikleri saklanir
++                'stastics': {'train':train, 'valid': valid, 'test': test}
+             }
+-            
++
+             save_checkpoint(state, isbest, args.metric, epoch, result_dir)
+ 
+-            print(f'Epoch={epoch} done!')
++            print(f'Epoch={epoch} done! valid_{args.metric}={valid[args.metric]:.4f} '
++                  f'(best={best:.4f} @epoch {best_epoch}, patience {patience_counter}/{args.patience})')
+             # scheduler.step()
+ 
++            # --- FIX (Madde 1): early stopping ---
++            if patience_counter >= args.patience:
++                print(f'Early stopping: validation {args.metric} {args.patience} epoch boyunca '
++                      f'iyilesmedi. En iyi epoch = {best_epoch} (valid_{args.metric}={best:.4f}).')
++                break
++
++        if diverged:
++            print(f'SONUC: KOSU IRAKSADI (lr={args.lr}). Bu kosu gecersiz — sweep\'te eleyin.')
++        else:
++            print(f'Egitim bitti. Secilen (val-best) epoch = {best_epoch}, '
++                  f'valid_{args.metric} = {best:.4f}. '
++                  f'Bu epoch\'un test skoru history.csv\'de.')
++
+ 
+     elif args.job == 'eval':
+ 

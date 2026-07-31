@@ -3,7 +3,7 @@
 #
 # Default run is CPU-only and needs no GPU, no TabFM, no network: it regenerates every table
 # and statistic in the paper from the released preds/ CSVs and the benchmark data CSVs.
-# Pass --full to additionally run the long / GPU-dependent jobs (TabFM, HINT retrain, D5 fix).
+# Pass --full to additionally run the long / GPU-dependent TabFM jobs.
 #
 # Usage:
 #   bash regenerate_all.sh            # fast, CPU-only, ~2-5 min
@@ -40,15 +40,18 @@ run "calibration (Brier + ECE, tab:calib)" "$PAPER" -- $PY calibration.py
 # ---- 4. Decision-curve analysis (net benefit, fig:dca) --------------------------------------
 run "dca (net benefit)" "$PAPER" -- $PY dca.py
 
-# ---- 5. Data-quality audits: temporal split, recurrence, SMILES collision, base-rate lookup --
+# ---- 5. D5 comparison from released populated-cache predictions ------------------------------
+run "quantify_d5 phase III (stored predictions)" "$PAPER" -- $PY quantify_d5.py --phase III
+
+# ---- 6. Data-quality audits: temporal split, recurrence, SMILES collision, base-rate lookup --
 for ph in I II III; do
   run "data_audit phase $ph (Q2/Q3/Q4 + base-rate lookups)" "$PAPER" -- $PY data_audit.py --phase "$ph"
 done
 
-# ---- 6. GRAM-500 cap question, CPU classical-GBM proxy (no GPU / no TabFM) -------------------
+# ---- 7. GRAM-500 cap question, CPU classical-GBM proxy (no GPU / no TabFM) -------------------
 run "tabfm_gram500 --proxy (500-cap is not the bottleneck)" "$A" -- $PY tabfm_gram500.py --phase III --proxy
 
-# ---- 7. Tuned gradient-boosting baselines (uses stored feature tables; CPU) ------------------
+# ---- 8. Tuned gradient-boosting baselines (uses stored feature tables; CPU) ------------------
 run "gbdt_baselines phase III (XGB/LGBM/CatBoost)" "$A" -- $PY gbdt_baselines.py --phase III
 
 echo -e "\n\n===== FAST (CPU) REGENERATION COMPLETE. Log: $LOG =====" | tee -a "$LOG"
@@ -59,9 +62,8 @@ if [[ "$FULL" -eq 0 ]]; then
 Skipped the long / GPU-dependent jobs. Re-run with '--full' on a working GPU node to add them:
   * TabFM 5-seed baseline           (tabfm_baseline_optionA/tabfm_seeds.py)         [GPU]
   * TabFM single-member determinism (tabfm_baseline_optionA/tabfm_single_member.py) [GPU]
-  * OWED: D5 fix + >=5-seed HINT     (paper/quantify_d5.py ; see D5_QUANTIFY.md)      [GPU, long]
 These do not change any number already in the paper; the first two confirm TabFM's seed sd,
-and the third is the one measurement the paper flags as still owed.
+while the D5 comparison is now reproduced in the default path from its released per-trial CSV.
 EOF
   exit 0
 fi
@@ -69,6 +71,5 @@ fi
 # ---- FULL: long / GPU-dependent jobs (need the tabfm jax[cuda12] env on g122/g124) ----------
 run "tabfm_seeds phase III (5-seed TabFM sd)"        "$A"     -- $PY tabfm_seeds.py --phase III
 run "tabfm_single_member (determinism check)"        "$A"     -- $PY tabfm_single_member.py --phase III
-run "quantify_d5 (D5 fix + HINT re-run, THE owed one)" "$PAPER" -- $PY quantify_d5.py --phase III
 
 echo -e "\n\n===== FULL REGENERATION COMPLETE. Log: $LOG =====" | tee -a "$LOG"

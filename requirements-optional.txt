@@ -1,0 +1,15 @@
+# Optional dependencies for upstream-model inference, cache generation, and
+# ancillary benchmark-builder scripts. These are not needed for the default
+# stored-prediction reproduction.
+torch
+transformers
+tqdm
+seaborn
+requests
+PyPDF2
+icd10-cm
+
+# TabFM and TabPFN are intentionally not listed as generic pip requirements.
+# Use tabfm_baseline_optionA/requirements_tabfm_jax.txt for the recorded TabFM
+# JAX environment, install the matching upstream `tabfm` package separately,
+# or follow TabPFN's upstream GPU installation instructions.

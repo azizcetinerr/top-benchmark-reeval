@@ -15,8 +15,11 @@ import os
 # --- Repo roots (relative to this file) ---
 PAPER_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT      = os.path.dirname(PAPER_DIR)          # .../ctp
-HINT_DIR  = os.path.join(ROOT, 'hint')
-MEXA_DIR  = os.path.join(ROOT, 'mexa')
+# The repository contains benchmark inputs under ROOT/hint, not a vendored full
+# HINT/MEXA source tree. Point these variables at patched upstream clones for
+# optional checkpoint inference or retraining.
+HINT_DIR  = os.path.abspath(os.environ.get('CTP_HINT_DIR', os.path.join(ROOT, 'hint')))
+MEXA_DIR  = os.path.abspath(os.environ.get('CTP_MEXA_DIR', os.path.join(ROOT, 'mexa')))
 
 # Folder where raw scores are dumped: {nctid, score, label, split}
 PREDS_DIR = os.path.join(PAPER_DIR, 'preds')

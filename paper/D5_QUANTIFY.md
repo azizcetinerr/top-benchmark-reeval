@@ -1,10 +1,11 @@
 # Quantifying defect D5 (HINT's empty criteria-embedding cache)
 
 D5: `hint/data/sentence2embedding.pkl` ships as an empty dict, so `protocol2feature` feeds a
-zero 768-vector to HINT's eligibility-criteria branch for every trial. The paper currently
-**documents** this and does not quantify it. These steps quantify it on the cluster (g124),
-then `quantify_d5.py` reports the effect. Nothing here needs a rewrite of the paper's other
-numbers — we work on copies and restore the shipped state at the end.
+zero 768-vector to HINT's eligibility-criteria branch for every trial. Route A was run and its
+standard-schema output is released as `preds/preds_hint_criteria_phase_III.csv`;
+`quantify_d5.py` reproduces the reported inference-only comparison directly from that file.
+The steps below record how the CSV was generated and how Route B can be run as an optional
+full retraining experiment.
 
 Two routes:
 - **Route A (quick, inference-only):** regenerate the cache, re-score the *released* HINT
@@ -84,11 +85,10 @@ Outputs, on the common test set:
 cd ~/ctp/hint && cp data/sentence2embedding.EMPTY.pkl data/sentence2embedding.pkl   # back to 6-byte empty
 ```
 
-## What to write in the paper afterwards
+## Interpretation recorded in the paper
 
-- If `HINT(cache) − HINT(empty)` is ~0: the shipped checkpoint never learned to use criteria
-  (trained on zeros too), so D5 is a modality that was dead in training and eval alike — a
-  clean statement, and the ablation-ladder interpretation stands with the caveat already added.
-- If `HINT(cache) − HINT(empty)` is large and positive: D5 materially depressed HINT in every
-  public re-run, and a share of the published MEXA>HINT gap is attributable to it — promote the
-  D5 limitation to a quantified result and update Section~4.1.
+The released Route-A scores show essentially no change (`ΔROC-AUC=-0.0001`,
+paired-bootstrap `p=0.93`). This supports the narrow conclusion that the
+released checkpoint did not use the restored criteria vectors at inference;
+it does not replace the optional Route-B retraining experiment or imply that
+eligibility text is generally uninformative.
