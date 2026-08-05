@@ -1,0 +1,4 @@
+phase,n_test,pos_rate,target_encoding_roc,target_encoding_pr,plain_lookup_roc
+I,627,0.553,0.5691,0.6336,0.5744
+II,1654,0.555,0.5866,0.6377,0.6123
+III,1146,0.75,0.6756,0.8598,0.7003

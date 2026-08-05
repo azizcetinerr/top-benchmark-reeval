@@ -1,5 +1,0 @@
-Shared harness + ten defect fixes: published HINT/MEXA-CTP advantage disappears.
-MEXA-CTP mode-experts never trained (dict); repaired, still inert.
-Zero-training TabFM and val-selected grid match HINT in all three phases.
-All signal is in disease codes; molecular structure adds nothing testable.
-TOP effect sizes sit below the MDE (0.035–0.067); six of seven claims overturned.
